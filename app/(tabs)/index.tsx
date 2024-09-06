@@ -1,22 +1,37 @@
+import React, { useRef, useState } from "react";
+import {
+  Image,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import Camera, { CameraRef } from "@/components/CameraTest";
 import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useRef } from "react";
-import { Image, Platform, StyleSheet } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default function HomeScreen() {
   const cameraRef = useRef<CameraRef>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
 
-  const handleSomeAction = () => {
-    const cameraView = cameraRef.current?.getCameraRef().current;
-    if (cameraView) {
-      cameraView.takePictureAsync().then((photo) => {
-        console.log(photo?.uri);
-      });
+  const handleTakePicture = async () => {
+    if (cameraRef.current) {
+      try {
+        const uri = await cameraRef.current.takePicture();
+        if (uri) {
+          setPhotoUri(uri);
+          console.log("Photo taken:", uri);
+        }
+      } catch (error) {
+        console.error("Error taking picture:", error);
+      }
     }
+  };
+
+  const handleRetakePicture = () => {
+    setPhotoUri(null);
   };
 
   return (
@@ -29,15 +44,27 @@ export default function HomeScreen() {
         />
       }
     >
-      <Camera ref={cameraRef} />
-      <TouchableOpacity onPress={handleSomeAction}>
-        <ThemedText>Take a picture</ThemedText>
-      </TouchableOpacity>
+      <View style={styles.cameraContainer}>
+        {photoUri ? (
+          <Image source={{ uri: photoUri }} style={styles.capturedImage} />
+        ) : (
+          <Camera ref={cameraRef} />
+        )}
+        <TouchableOpacity
+          style={styles.cameraButton}
+          onPress={photoUri ? handleRetakePicture : handleTakePicture}
+        >
+          <ThemedText>
+            {photoUri ? "Retake Picture" : "Take Picture"}
+          </ThemedText>
+        </TouchableOpacity>
+      </View>
 
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>
@@ -50,6 +77,7 @@ export default function HomeScreen() {
           to open developer tools.
         </ThemedText>
       </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 2: Explore</ThemedText>
         <ThemedText>
@@ -57,6 +85,7 @@ export default function HomeScreen() {
           starter app.
         </ThemedText>
       </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
         <ThemedText>
@@ -88,5 +117,22 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     position: "absolute",
+  },
+  cameraContainer: {
+    aspectRatio: 1,
+    width: "100%",
+    marginBottom: 20,
+  },
+  cameraButton: {
+    position: "absolute",
+    bottom: 20,
+    alignSelf: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    padding: 10,
+    borderRadius: 5,
+  },
+  capturedImage: {
+    flex: 1,
+    resizeMode: "cover",
   },
 });
