@@ -9,7 +9,9 @@ function HomeScreen({}: Props) {
   return (
     <SafeAreaView className="flex-1">
       <View className="flex-1 bg-white items-center justify-center">
-        <Text>Open up App.tsx to start working on your app!</Text>
+        <Text className="text-black">
+          Open up App.tsx to start working on your app!
+        </Text>
       </View>
     </SafeAreaView>
   )
