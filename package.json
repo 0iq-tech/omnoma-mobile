@@ -8,7 +8,9 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "postinstall": "patch-package",
-    "fsd:check": "npx steiger ./src"
+    "fsd:check": "npx steiger ./src",
+    "android:build:prod": "cd android && ./android/gradlew aR && cd ../",
+    "android:install:prod": "adb install -r android/app/build/outputs/apk/release/app-release.apk"
   },
   "dependencies": {
     "@effector/reflect": "^9.2.0",
