@@ -16,11 +16,11 @@ function NavigationContainerView({initialState, node}: Props) {
 
   return (
     <RNNavigationContainer
-      theme={navigation.theme}
-      ref={navigation.ref}
       initialState={initialState}
+      onReady={navigation.onReady}
       onStateChange={navigation.onStateChange}
-      onReady={navigation.onReady}>
+      ref={navigation.ref}
+      theme={navigation.theme}>
       {node()}
     </RNNavigationContainer>
   )
