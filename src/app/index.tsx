@@ -1,12 +1,13 @@
-import '../../global.css'
-import {StatusBar} from 'expo-status-bar'
-import {Text, View} from 'react-native'
+import React from 'react'
+import {withProviders} from './providers'
+import {Router} from './router'
 
-export default function App() {
+function App() {
   return (
-    <View className="flex-1 bg-white items-center justify-center">
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <>
+      <Router />
+    </>
   )
 }
+
+export default withProviders(App)
