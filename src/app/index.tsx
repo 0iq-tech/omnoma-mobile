@@ -1,3 +1,4 @@
+import 'shared/lib/style-interop'
 import '../../global.css'
 
 import React from 'react'
