@@ -1,0 +1,27 @@
+{
+  "folderTemplates.structures": [
+    {
+      "name": "FSD: model + ui",
+      "customVariables": [],
+      "omitParentDirectory": true,
+      "structure": [
+        {
+          "fileName": "<FTName>/index.ts",
+          "template": "fsd_index"
+        },
+        {
+          "fileName": "<FTName>/api/index.ts"
+        },
+        {
+          "fileName": "<FTName>/model/index.ts"
+        },
+        {
+          "fileName": "<FTName>/ui/index.ts"
+        }
+      ]
+    }
+  ],
+  "folderTemplates.fileTemplates": {
+    "fsd_index": ["export * from './model'", "export * from './ui'"]
+  }
+}
