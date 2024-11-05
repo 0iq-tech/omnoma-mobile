@@ -19,7 +19,7 @@ const captureFoodFx = attach({
     const manipulatedImage = await ImageManipulator.manipulateAsync(
       photo.uri,
       [{resize: {width: 1092, height: 1092}}],
-      {compress: 1, format: ImageManipulator.SaveFormat.JPEG},
+      {compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true},
     )
 
     return manipulatedImage
