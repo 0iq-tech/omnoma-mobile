@@ -1,6 +1,6 @@
 import {reflect} from '@effector/reflect'
 import {useCameraPermissions} from 'expo-camera'
-import {FoodCameraView} from 'features/capture-food'
+import {FoodCameraView} from 'features/analyze-food'
 import {Button, Text, View} from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
 
