@@ -1,5 +1,6 @@
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import React from 'react'
+import {CameraScreen} from 'screens/camera'
 import {HomeScreen} from 'screens/home'
 import {routeNames, StackParamList} from 'shared/navigation'
 
@@ -13,6 +14,7 @@ export default function StackNavigator() {
         animation: 'simple_push',
       }}>
       <Screen name={routeNames.home} component={HomeScreen} />
+      <Screen name={routeNames.camera} component={CameraScreen} />
     </Navigator>
   )
 }
