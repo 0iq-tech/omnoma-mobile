@@ -1,4 +1,4 @@
-import {createEffect, sample} from 'effector'
+import {createEffect, createStore, sample} from 'effector'
 import {ImageResult} from 'expo-image-manipulator'
 import {condition} from 'patronum'
 import {handleErrorFx} from 'shared/lib'
@@ -44,10 +44,24 @@ condition({
   })),
 })
 
-analyzeFoodFx.doneData.watch((s) => console.log('analyzeFoodFx', s))
+const $foodAnalysis = createStore<any | null>(null)
+
+// store the result of the analysis
+
+sample({
+  clock: analyzeFoodFx.doneData,
+  filter: Boolean,
+  target: $foodAnalysis,
+})
+
+$foodAnalysis.watch((s) => console.log('$foodAnalysis', s))
+
+// handle errors
 
 sample({
   clock: analyzeFoodFx.failData,
   fn: (error) => ({error, context: {source: 'analyzeFoodFx'}}),
   target: handleErrorFx,
 })
+
+export {$foodAnalysis}

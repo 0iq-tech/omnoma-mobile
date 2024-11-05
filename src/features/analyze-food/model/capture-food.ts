@@ -26,7 +26,7 @@ const captureFoodFx = attach({
   },
 })
 
-captureFoodFx.doneData.watch((s) => console.log('captureFoodFx.doneData', s))
+// handle errors
 
 sample({
   clock: captureFoodFx.failData,
