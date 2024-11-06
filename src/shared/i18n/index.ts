@@ -1,5 +1,5 @@
-import * as instance from './instance'
+import * as integration from './integration'
 
 export const i18n = {
-  ...instance,
+  ...integration,
 }
