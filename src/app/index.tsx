@@ -1,14 +1,19 @@
 import 'shared/lib/style-interop'
 import '../../global.css'
 
-import React from 'react'
-import {appModel} from './model'
+import {useUnit} from 'effector-react'
+import React, {useEffect} from 'react'
+import {app} from 'shared/lib'
 import {withProviders} from './providers'
 import {Router} from './router'
 
-appModel.appStarted()
-
 function App() {
+  const [appStarted] = useUnit([app.started])
+
+  useEffect(() => {
+    appStarted()
+  }, [])
+
   return (
     <>
       <Router />
