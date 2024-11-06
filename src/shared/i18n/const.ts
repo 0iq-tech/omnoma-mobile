@@ -1,12 +1,8 @@
-export const I18N_INIT_CONFIG = {
-  resources: {
-    en: {
-      common: {
-        hello: 'Hello',
-        welcome: 'Welcome',
-      },
-    },
-  },
+import {InitOptions} from 'i18next'
+import {translations} from './translations'
+
+export const I18N_INIT_CONFIG: InitOptions = {
+  resources: translations,
   lng: 'en',
   fallbackLng: 'en',
   interpolation: {
