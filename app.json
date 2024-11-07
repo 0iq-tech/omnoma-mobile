@@ -7,6 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "plugins": [
+      ["react-native-bootsplash", {"assetsDir": "assets/bootsplash"}],
       [
         "expo-camera",
         {
@@ -30,9 +31,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": [
-        "android.permission.CAMERA"
-      ],
+      "permissions": ["android.permission.CAMERA"],
       "package": "com.omnoma.app"
     },
     "web": {
