@@ -1,4 +1,5 @@
 export * from './app'
 export * from './compose'
 export * from './handle-error'
+export * from './sleep'
 export * from './style-interop'

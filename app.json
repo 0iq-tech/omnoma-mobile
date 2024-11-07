@@ -7,6 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "plugins": [
+      ["expo-av"],
       ["react-native-bootsplash", {"assetsDir": "assets/bootsplash"}],
       [
         "expo-camera",
