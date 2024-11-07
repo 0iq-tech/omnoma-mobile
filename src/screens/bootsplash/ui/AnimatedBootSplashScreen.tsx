@@ -6,7 +6,10 @@ import {useHideAnimation} from 'react-native-bootsplash'
 import Animated, {
   Easing,
   runOnJS,
+  useAnimatedStyle,
   useSharedValue,
+  withSequence,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated'
 import {sleep} from 'shared/lib'
@@ -22,6 +25,14 @@ interface Props {
 function AnimatedBootSplashScreen({onAnimationEnd}: Props) {
   const [isVideoFinished, setIsVideoFinished] = useState(false)
   const opacity = useSharedValue(1)
+  const scale = useSharedValue(1)
+
+  const animatedStyles = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [{scale: scale.value}],
+    }
+  })
 
   const {container} = useHideAnimation({
     manifest: require('../assets/manifest.json'),
@@ -30,9 +41,23 @@ function AnimatedBootSplashScreen({onAnimationEnd}: Props) {
     animate: async () => {
       await sleep(2540)
 
+      scale.value = withSequence(
+        withSpring(1.02, {
+          damping: 15,
+          stiffness: 100,
+        }),
+        withTiming(0.98, {
+          duration: 300,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+        }),
+      )
+
       opacity.value = withTiming(
         0,
-        {duration: 400, easing: Easing.out(Easing.ease)},
+        {
+          duration: 800,
+          easing: Easing.bezier(0.4, 0, 0.2, 1),
+        },
         () => {
           runOnJS(onAnimationEnd)()
         },
@@ -42,7 +67,7 @@ function AnimatedBootSplashScreen({onAnimationEnd}: Props) {
 
   return (
     <>
-      <Animated.View {...container} style={[container.style, {opacity}]}>
+      <Animated.View {...container} style={[container.style, animatedStyles]}>
         <Animated.Image
           source={require('../assets/last_frame.png')}
           style={styles.fullScreen}
