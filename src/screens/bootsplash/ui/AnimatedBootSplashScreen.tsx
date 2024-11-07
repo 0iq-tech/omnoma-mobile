@@ -28,7 +28,7 @@ function AnimatedBootSplashScreen({onAnimationEnd}: Props) {
     statusBarTranslucent: true,
     navigationBarTranslucent: false,
     animate: async () => {
-      await sleep(2000)
+      await sleep(2540)
 
       opacity.value = withTiming(
         0,
