@@ -10,6 +10,7 @@ import {
   BootSplashState,
 } from 'screens/bootsplash'
 import {app} from 'shared/lib'
+import {Measurements} from 'shared/measurements'
 import {withProviders} from './providers'
 import {Router} from './router'
 
@@ -23,6 +24,7 @@ function App() {
 
   return (
     <>
+      <Measurements />
       <SystemBars style="dark" />
       <Router />
       {bootSplashState === BootSplashState.HIDING && (
