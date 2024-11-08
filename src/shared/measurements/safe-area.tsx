@@ -2,12 +2,12 @@ import {createEvent, createStore, sample} from 'effector'
 import {useEffect} from 'react'
 import {EdgeInsets, useSafeAreaInsets} from 'react-native-safe-area-context'
 
-export const setSafeAreaInsets = createEvent<EdgeInsets>()
+const setSafeAreaInsets = createEvent<EdgeInsets>()
 
-export const $top = createStore<number>(0)
-export const $right = createStore<number>(0)
-export const $bottom = createStore<number>(0)
-export const $left = createStore<number>(0)
+const $top = createStore<number>(0)
+const $right = createStore<number>(0)
+const $bottom = createStore<number>(0)
+const $left = createStore<number>(0)
 
 const commonFilter = (safeAreaInset: EdgeInsets) => !!safeAreaInset
 

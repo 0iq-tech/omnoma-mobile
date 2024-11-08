@@ -12,8 +12,8 @@ const initialDimensions: DimensionsState = {
   screen: Dimensions.get('screen'),
 }
 
-export const setScreenDimensions = createEvent<ScaledSize>()
-export const setWindowDimensions = createEvent<ScaledSize>()
+const setScreenDimensions = createEvent<ScaledSize>()
+const setWindowDimensions = createEvent<ScaledSize>()
 
 const $screen = createStore<ScaledSize>(initialDimensions.screen)
 const $window = createStore<ScaledSize>(initialDimensions.window)
