@@ -3,6 +3,7 @@ import '../../global.css'
 
 import {useUnit} from 'effector-react'
 import React, {useEffect} from 'react'
+import {SystemBars} from 'react-native-edge-to-edge'
 import {
   AnimatedBootSplashScreen,
   bootsplashScreenModel,
@@ -22,6 +23,7 @@ function App() {
 
   return (
     <>
+      <SystemBars style="dark" />
       <Router />
       {bootSplashState === BootSplashState.HIDING && (
         <AnimatedBootSplashScreen />

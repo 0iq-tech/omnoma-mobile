@@ -36,8 +36,6 @@ function AnimatedBootSplashScreen({onAnimationEnd}: Props) {
 
   const {container} = useHideAnimation({
     manifest: require('../assets/manifest.json'),
-    statusBarTranslucent: true,
-    navigationBarTranslucent: false,
     animate: async () => {
       await sleep(2540)
 
