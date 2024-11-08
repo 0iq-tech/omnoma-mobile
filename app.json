@@ -13,6 +13,7 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
         }
       ],
+      "./plugins/with-android-styles",
       [
         "react-native-bootsplash",
         {
