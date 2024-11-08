@@ -5,7 +5,7 @@ import {useUnit} from 'effector-react'
 import React, {useEffect} from 'react'
 import {SystemBars} from 'react-native-edge-to-edge'
 import {
-  AnimatedBootSplashScreen,
+  BootSplashScreen,
   bootsplashScreenModel,
   BootSplashState,
 } from 'screens/bootsplash'
@@ -27,9 +27,7 @@ function App() {
       <Measurements />
       <SystemBars style="dark" />
       <Router />
-      {bootSplashState === BootSplashState.HIDING && (
-        <AnimatedBootSplashScreen />
-      )}
+      {bootSplashState === BootSplashState.HIDING && <BootSplashScreen />}
     </>
   )
 }

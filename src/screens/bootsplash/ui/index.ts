@@ -1,1 +1,1 @@
-export {default as AnimatedBootSplashScreen} from './AnimatedBootSplashScreen'
+export {default as BootSplashScreen} from './BootSplashScreen'
