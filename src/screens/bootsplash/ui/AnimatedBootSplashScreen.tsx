@@ -1,7 +1,7 @@
 import {reflect} from '@effector/reflect'
 import {ResizeMode, Video} from 'expo-av'
 import React, {useState} from 'react'
-import {Dimensions, StyleSheet, View} from 'react-native'
+import {StyleSheet, View} from 'react-native'
 import {useHideAnimation} from 'react-native-bootsplash'
 import Animated, {
   Easing,
@@ -13,16 +13,21 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 import {sleep} from 'shared/lib'
+import {dimensions} from 'shared/measurements'
 import {BootSplashState} from '../api'
 import {bootsplashScreenModel} from '../model'
 
-const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window')
-
 interface Props {
   onAnimationEnd: () => void
+  screenHeight: number
+  screenWidth: number
 }
 
-function AnimatedBootSplashScreen({onAnimationEnd}: Props) {
+function AnimatedBootSplashScreen({
+  onAnimationEnd,
+  screenHeight,
+  screenWidth,
+}: Props) {
   const [isVideoFinished, setIsVideoFinished] = useState(false)
   const opacity = useSharedValue(1)
   const scale = useSharedValue(1)
@@ -65,10 +70,10 @@ function AnimatedBootSplashScreen({onAnimationEnd}: Props) {
 
   return (
     <>
-      <Animated.View {...container} style={[container.style, animatedStyles]}>
+      <Animated.View {...container} style={animatedStyles}>
         <Animated.Image
           source={require('../assets/last_frame.png')}
-          style={styles.fullScreen}
+          className={`top-0 left-0 right-0 bottom-0 absolute w-[${screenWidth}px] h-[${screenHeight}px]`}
         />
       </Animated.View>
       {!isVideoFinished && (
@@ -91,23 +96,13 @@ function AnimatedBootSplashScreen({onAnimationEnd}: Props) {
   )
 }
 
-const styles = StyleSheet.create({
-  fullScreen: {
-    position: 'absolute',
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-})
-
 export default reflect({
   view: AnimatedBootSplashScreen,
   bind: {
     onAnimationEnd: () => {
       bootsplashScreenModel.setState(BootSplashState.HIDDEN)
     },
+    screenWidth: dimensions.screen.staticWidth,
+    screenHeight: dimensions.screen.staticHeight,
   },
 })
