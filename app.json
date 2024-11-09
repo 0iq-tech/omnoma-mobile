@@ -7,19 +7,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "plugins": [
-      [
-        "expo-av",
-        {
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
-        }
-      ],
-      [
-        "react-native-bootsplash",
-        {
-          "assetsDir": "assets/bootsplash",
-          "parentTheme": "EdgeToEdge"
-        }
-      ],
+      ["react-native-bootsplash", {"android": {"parentTheme": "EdgeToEdge"}}],
+      "react-native-edge-to-edge",
+      "expo-av",
       [
         "expo-camera",
         {
@@ -27,8 +17,7 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": false
         }
-      ],
-      "react-native-edge-to-edge"
+      ]
     ],
     "splash": {
       "image": "./assets/splash.png",
