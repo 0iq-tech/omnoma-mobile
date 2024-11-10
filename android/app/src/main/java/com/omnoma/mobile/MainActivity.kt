@@ -1,4 +1,4 @@
-package com.omnoma.app
+package com.omnoma.mobile
 import com.zoontek.rnbootsplash.RNBootSplash
 
 import android.os.Build

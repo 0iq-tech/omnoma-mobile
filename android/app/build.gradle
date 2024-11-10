@@ -109,9 +109,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.omnoma.app'
+    namespace 'com.omnoma.mobile'
     defaultConfig {
-        applicationId 'com.omnoma.app'
+        applicationId 'com.omnoma.mobile'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

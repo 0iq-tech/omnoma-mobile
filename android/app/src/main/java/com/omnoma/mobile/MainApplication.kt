@@ -1,4 +1,4 @@
-package com.omnoma.app
+package com.omnoma.mobile
 
 import android.app.Application
 import android.content.res.Configuration

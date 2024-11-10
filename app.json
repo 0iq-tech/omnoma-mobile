@@ -28,7 +28,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.omnoma.app"
+      "bundleIdentifier": "com.omnoma.mobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -40,7 +40,7 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
-      "package": "com.omnoma.app"
+      "package": "com.omnoma.mobile"
     },
     "web": {
       "favicon": "./assets/favicon.png",
