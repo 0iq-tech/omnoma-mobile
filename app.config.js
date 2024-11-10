@@ -81,5 +81,9 @@ export default {
       },
     },
     owner: '0iq-tech',
+    updates: {
+      url: 'https://u.expo.dev/0172f579-0cf7-4086-90cb-9ff3c43726a8',
+    },
+    runtimeVersion: '1.0.0',
   },
 }
