@@ -45,6 +45,12 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0172f579-0cf7-4086-90cb-9ff3c43726a8"
+      }
+    },
+    "owner": "0iq-tech"
   }
 }
