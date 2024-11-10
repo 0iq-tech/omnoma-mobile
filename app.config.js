@@ -15,20 +15,19 @@ const getUniqueIdentifier = () => {
 
 const getAppName = () => {
   if (IS_DEV) {
-    return 'Omnoma (Dev)'
+    return 'omnoma (dev)'
   }
 
   if (IS_PREVIEW) {
-    return 'Omnoma (Preview)'
+    return 'omnoma (preview)'
   }
 
-  return 'Omnoma'
+  return 'omnoma'
 }
 
 export default {
-  name: getAppName(),
   expo: {
-    name: 'omnoma-mobile',
+    name: getAppName(),
     slug: 'omnoma-mobile',
     version: '1.0.0',
     orientation: 'portrait',
