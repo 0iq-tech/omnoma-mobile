@@ -7,7 +7,14 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "plugins": [
-      ["react-native-bootsplash", {"android": {"parentTheme": "EdgeToEdge"}}],
+      [
+        "react-native-bootsplash",
+        {
+          "android": {
+            "parentTheme": "EdgeToEdge"
+          }
+        }
+      ],
       "react-native-edge-to-edge",
       "expo-av",
       [
@@ -28,7 +35,11 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["android.permission.CAMERA"],
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
       "package": "com.omnoma.app"
     },
     "web": {
