@@ -15,8 +15,8 @@
       "export default reflect({",
       "view: $TM_FILENAME_BASE,",
       "bind: {},",
-      "})"
+      "})",
     ],
-    "description": "RN component with reflect / tailwind"
-  }
+    "description": "RN component with reflect",
+  },
 }
