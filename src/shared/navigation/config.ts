@@ -1,11 +1,13 @@
-export const routeNames = {
-  home: 'home',
+export const tabNames = {
+  feed: 'feed',
   camera: 'camera',
+  analytics: 'analytics',
 } as const
 
-export type StackParamList = {
-  [routeNames.home]: undefined
-  [routeNames.camera]: undefined
+export type TabPapamList = {
+  [tabNames.feed]: undefined
+  [tabNames.camera]: undefined
+  [tabNames.analytics]: undefined
 }
 
-export type NavigationParamList = StackParamList
+export type NavigationParamList = TabPapamList
