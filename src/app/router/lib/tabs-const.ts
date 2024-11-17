@@ -1,7 +1,8 @@
 import {FontAwesome} from '@expo/vector-icons'
 import {BottomTabNavigationOptions} from '@react-navigation/bottom-tabs'
+import {AnalyticsScreen} from 'screens/analytics'
 import {CameraScreen} from 'screens/camera'
-import {HomeScreen} from 'screens/home'
+import {FeedScreen} from 'screens/feed'
 import {tabNames, TabPapamList} from 'shared/navigation'
 
 export const BASE_SCREEN_OPTIONS: BottomTabNavigationOptions = {
@@ -12,9 +13,9 @@ export const BASE_SCREEN_OPTIONS: BottomTabNavigationOptions = {
 }
 
 export const SCREEN_COMPONENTS = {
-  [tabNames.feed]: HomeScreen,
+  [tabNames.feed]: FeedScreen,
   [tabNames.camera]: CameraScreen,
-  [tabNames.analytics]: CameraScreen,
+  [tabNames.analytics]: AnalyticsScreen,
 } as const
 
 export const SCREENS = Object.keys(SCREEN_COMPONENTS) as Array<
