@@ -1,0 +1,86 @@
+name: Code Quality & Architecture Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit
+        env:
+          NODE_ENV: development
+
+      - name: Get files for checking
+        id: files-to-check
+        run: |
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} | grep "^src/.*\.\(ts\|tsx\)$" || true)
+          ROOT_DTS_FILES=$(find . -maxdepth 1 -name "*.d.ts" -type f)
+          echo "changed=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "dts=$ROOT_DTS_FILES" >> $GITHUB_OUTPUT
+
+      - name: Check TypeScript
+        id: typescript
+        if: steps.files-to-check.outputs.changed != ''
+        run: npx tscw --noEmit ${{ steps.files-to-check.outputs.changed }} ${{ steps.files-to-check.outputs.dts }}
+        continue-on-error: true
+
+      - name: Check ESLint
+        id: eslint
+        if: steps.files-to-check.outputs.changed != ''
+        run: npx eslint ${{ steps.files-to-check.outputs.changed }}
+        continue-on-error: true
+
+      - name: Check Prettier
+        id: prettier
+        if: steps.files-to-check.outputs.changed != ''
+        run: npx prettier --check ${{ steps.files-to-check.outputs.changed }}
+        continue-on-error: true
+
+      - name: Run FSD Architecture check
+        id: fsd
+        run: npm run fsd:check
+        continue-on-error: true
+
+      - name: Check all results
+        if: always()
+        run: |
+          if [ "${{ steps.typescript.outcome }}" != "success" ] && [ "${{ steps.files-to-check.outputs.changed }}" != "" ]; then
+            echo "TypeScript check failed"
+            exit 1
+          fi
+          if [ "${{ steps.eslint.outcome }}" != "success" ] && [ "${{ steps.files-to-check.outputs.changed }}" != "" ]; then
+            echo "ESLint check failed"
+            exit 1
+          fi
+          if [ "${{ steps.prettier.outcome }}" != "success" ] && [ "${{ steps.files-to-check.outputs.changed }}" != "" ]; then
+            echo "Prettier check failed"
+            exit 1
+          fi
+          if [ "${{ steps.fsd.outcome }}" != "success" ]; then
+            echo "FSD Architecture check failed"
+            exit 1
+          fi
