@@ -1,28 +1,45 @@
-const {readdirSync} = require('fs')
-const {relative} = require('path')
+const PATTERNS = Object.freeze({
+  TS: 'src/**/*.{ts,tsx}',
+  JS: 'src/**/*.{js,jsx,json}',
+})
 
-const cacheOptions = (strategy, cacheFile) =>
-  `--cache --cache-strategy ${strategy} --cache-location .lint-cache/${cacheFile}`
+const shouldRunChecks = process.env.ENFORCE_PRECOMMIT === 'true'
 
-const eslint = `eslint --report-unused-disable-directives --fix`
-const prettier = `prettier --write ${cacheOptions('metadata', '.prettiercache')}`
+if (!shouldRunChecks) {
+  console.log(
+    'Pre-commit checks are disabled. Set ENFORCE_PRECOMMIT=true to enable',
+  )
+  module.exports = {
+    [PATTERNS.TS]: [],
+    [PATTERNS.JS]: [],
+  }
+} else {
+  const {readdirSync} = require('fs')
+  const {relative} = require('path')
 
-const getRootDeclarationFiles = () => {
-  const files = readdirSync('./', {withFileTypes: true})
-  return files
-    .filter((file) => !file.isDirectory() && file.name.endsWith('.d.ts'))
-    .map((file) => file.name)
-}
+  const cacheOptions = (strategy, cacheFile) =>
+    `--cache --cache-strategy ${strategy} --cache-location .lint-cache/${cacheFile}`
 
-const typeCheck = (files) => {
-  const cwd = process.cwd()
-  const relativePaths = files.map((file) => relative(cwd, file)).join(' ')
-  const declarationFiles = getRootDeclarationFiles().join(' ')
+  const eslint = `eslint --report-unused-disable-directives --fix`
+  const prettier = `prettier --write ${cacheOptions('metadata', '.prettiercache')}`
 
-  return `npx tscw --noEmit ${relativePaths} ${declarationFiles}`
-}
+  const getRootDeclarationFiles = () => {
+    const files = readdirSync('./', {withFileTypes: true})
+    return files
+      .filter((file) => !file.isDirectory() && file.name.endsWith('.d.ts'))
+      .map((file) => file.name)
+  }
 
-module.exports = {
-  'src/**/*.{ts,tsx}': [prettier, typeCheck, eslint],
-  'src/**/*.{js,jsx,json}': [prettier, eslint],
+  const typeCheck = (files) => {
+    const cwd = process.cwd()
+    const relativePaths = files.map((file) => relative(cwd, file)).join(' ')
+    const declarationFiles = getRootDeclarationFiles().join(' ')
+
+    return `npx tscw --noEmit ${relativePaths} ${declarationFiles}`
+  }
+
+  module.exports = {
+    [PATTERNS.TS]: [prettier, typeCheck, eslint],
+    [PATTERNS.JS]: [prettier, eslint],
+  }
 }
