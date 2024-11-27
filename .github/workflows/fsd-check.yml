@@ -52,10 +52,12 @@ jobs:
 
             Status: ${process.env.STATUS || (process.env.STEP_OUTCOME === 'success' ? '✅ Passed' : '❌ Failed')}`;
 
-            github.rest.issues.createComment({
+            const { repo, owner } = context.repo;
+
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.name,
+              owner: owner,
+              repo: repo,
               body: output
             });
 
