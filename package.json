@@ -14,8 +14,7 @@
     "android:install:prod": "adb install -r android/app/build/outputs/apk/release/app-release.apk",
     "android:uninstall": "adb uninstall com.omnoma.app",
     "lint": "eslint ./src",
-    "prepare": "husky",
-    "typecheck": "tsc --noEmit"
+    "prepare": "husky"
   },
   "dependencies": {
     "@effector/reflect": "^9.2.0",
