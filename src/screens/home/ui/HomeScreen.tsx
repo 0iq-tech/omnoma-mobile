@@ -13,11 +13,12 @@ function HomeScreen({onOpenCameraPress}: Props) {
     <SafeAreaView className="flex-1">
       <View className="flex-1 bg-white items-center justify-center">
         <Text className="text-black">
-          Open up App.tsx to start working on your app!
+          Open up App.tsx to start working on your app! github action test
         </Text>
         <TouchableOpacity
           className="mt-4 border rounded-full p-4"
-          onPress={onOpenCameraPress}>
+          onPress={onOpenCameraPress}
+        >
           <Text className="text-blue-500">Open Camera</Text>
         </TouchableOpacity>
       </View>
