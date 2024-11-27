@@ -17,6 +17,9 @@ jobs:
 
     if: github.event.pull_request.head.repo.full_name == github.repository
 
+    env:
+      NODE_OPTIONS: '--max-old-space-size=6144'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,57 +33,157 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --no-audit
+        run: npm ci --no-audit --prefer-offline
         env:
           NODE_ENV: development
+
+      - name: Cache build artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            .eslintcache
+            tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
       - name: Get files for checking
         id: files-to-check
         run: |
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} | grep "^src/.*\.\(ts\|tsx\)$" || true)
-          ROOT_DTS_FILES=$(find . -maxdepth 1 -name "*.d.ts" -type f)
-          echo "changed=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} | grep "^src/.*\.\(ts\|tsx\)$" || echo "")
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No relevant files changed"
+            echo "changed=" >> $GITHUB_OUTPUT
+          else
+            echo "changed=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          fi
+          ROOT_DTS_FILES=$(find . -maxdepth 1 -name "*.d.ts" -type f || echo "")
           echo "dts=$ROOT_DTS_FILES" >> $GITHUB_OUTPUT
 
-      - name: Check TypeScript
-        id: typescript
+      # Group 1: TypeScript + Prettier (balancing heavy + light)
+      - name: Run Group 1 Checks
+        id: group-1
         if: steps.files-to-check.outputs.changed != ''
-        run: npx tscw --noEmit ${{ steps.files-to-check.outputs.changed }} ${{ steps.files-to-check.outputs.dts }}
-        continue-on-error: true
-
-      - name: Check ESLint
-        id: eslint
-        if: steps.files-to-check.outputs.changed != ''
-        run: npx eslint ${{ steps.files-to-check.outputs.changed }}
-        continue-on-error: true
-
-      - name: Check Prettier
-        id: prettier
-        if: steps.files-to-check.outputs.changed != ''
-        run: npx prettier --check ${{ steps.files-to-check.outputs.changed }}
-        continue-on-error: true
-
-      - name: Run FSD Architecture check
-        id: fsd
-        run: npm run fsd:check
-        continue-on-error: true
-
-      - name: Check all results
-        if: always()
         run: |
-          if [ "${{ steps.typescript.outcome }}" != "success" ] && [ "${{ steps.files-to-check.outputs.changed }}" != "" ]; then
-            echo "TypeScript check failed"
+          # Create log directories
+          mkdir -p logs
+
+          # Run TypeScript check (heavy) with higher memory limit
+          (NODE_OPTIONS="--max-old-space-size=4096" timeout 5m npx tscw --noEmit ${{ steps.files-to-check.outputs.changed }} ${{ steps.files-to-check.outputs.dts }} 2>&1 | tee logs/typescript.log) &
+          TS_PID=$!
+
+          # Run Prettier (light) with lower memory limit
+          (NODE_OPTIONS="--max-old-space-size=1024" timeout 3m npx prettier --check ${{ steps.files-to-check.outputs.changed }} 2>&1 | tee logs/prettier.log) &
+          PRETTIER_PID=$!
+
+          # Wait for both processes
+          wait $TS_PID
+          TS_EXIT=$?
+          wait $PRETTIER_PID
+          PRETTIER_EXIT=$?
+
+          # Check results
+          if [ $TS_EXIT -ne 0 ] || [ $PRETTIER_EXIT -ne 0 ]; then
+            echo "Group 1 Checks failed"
             exit 1
           fi
-          if [ "${{ steps.eslint.outcome }}" != "success" ] && [ "${{ steps.files-to-check.outputs.changed }}" != "" ]; then
-            echo "ESLint check failed"
+          echo "Group 1 Checks passed successfully"
+
+      # Group 2: ESLint + FSD Architecture (balancing medium + medium)
+      - name: Run Group 2 Checks
+        id: group-2
+        if: success() || failure()
+        run: |
+          # Run ESLint (medium) with moderate memory limit
+          (NODE_OPTIONS="--max-old-space-size=2048" timeout 4m npx eslint --report-unused-disable-directives --cache ${{ steps.files-to-check.outputs.changed }} 2>&1 | tee logs/eslint.log) &
+          ESLINT_PID=$!
+
+          # Run FSD Architecture check (medium) with moderate memory limit
+          (NODE_OPTIONS="--max-old-space-size=2048" timeout 4m npm run fsd:check 2>&1 | tee logs/fsd.log) &
+          FSD_PID=$!
+
+          # Wait for both processes
+          wait $ESLINT_PID
+          ESLINT_EXIT=$?
+          wait $FSD_PID
+          FSD_EXIT=$?
+
+          # Check results
+          if [ $ESLINT_EXIT -ne 0 ] || [ $FSD_EXIT -ne 0 ]; then
+            echo "Group 2 Checks failed"
             exit 1
           fi
-          if [ "${{ steps.prettier.outcome }}" != "success" ] && [ "${{ steps.files-to-check.outputs.changed }}" != "" ]; then
-            echo "Prettier check failed"
-            exit 1
-          fi
-          if [ "${{ steps.fsd.outcome }}" != "success" ]; then
-            echo "FSD Architecture check failed"
-            exit 1
-          fi
+          echo "Group 2 Checks passed successfully"
+
+      - name: Collect Errors
+        if: failure()
+        run: |
+          echo "::group::TypeScript Errors"
+          cat logs/typescript.log || true
+          echo "::endgroup::"
+
+          echo "::group::ESLint Errors"
+          cat logs/eslint.log || true
+          echo "::endgroup::"
+
+          echo "::group::Prettier Errors"
+          cat logs/prettier.log || true
+          echo "::endgroup::"
+
+          echo "::group::FSD Architecture Errors"
+          cat logs/fsd.log || true
+          echo "::endgroup::"
+
+      - name: Report Status
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { owner, repo, number } = context.issue;
+            const summary = [];
+            const details = [];
+
+            if ('${{ steps.files-to-check.outputs.changed }}' === '') {
+              summary.push('⏭️ No relevant files to check');
+            } else {
+              if ('${{ steps.group-1.outcome }}' === 'success') {
+                summary.push('✅ Group 1: TypeScript and Prettier checks passed');
+                details.push('- TypeScript: Passed ✅');
+                details.push('- Prettier: Passed ✅');
+              } else {
+                summary.push('❌ Group 1: TypeScript and/or Prettier checks failed');
+                details.push('- Please check the logs for detailed errors');
+              }
+            }
+
+            if ('${{ steps.group-2.outcome }}' === 'success') {
+              summary.push('✅ Group 2: ESLint and FSD Architecture checks passed');
+              details.push('- ESLint: Passed ✅');
+              details.push('- FSD Architecture: Passed ✅');
+            } else {
+              summary.push('❌ Group 2: ESLint and/or FSD Architecture checks failed');
+              details.push('- Please check the logs for detailed errors');
+            }
+
+            const message = [
+              '## Code Quality Check Results',
+              '',
+              ...summary,
+              '',
+              '### Details',
+              '',
+              ...details,
+              '',
+              '> Memory allocation:',
+              '> - TypeScript: 4GB',
+              '> - Prettier: 1GB',
+              '> - ESLint: 2GB',
+              '> - FSD Architecture: 2GB'
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body: message
+            });
