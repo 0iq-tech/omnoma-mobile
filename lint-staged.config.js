@@ -1,3 +1,8 @@
+const PATTERNS = Object.freeze({
+  TS: 'src/**/*.{ts,tsx}',
+  JS: 'src/**/*.{js,jsx,json}',
+})
+
 const shouldRunChecks = process.env.ENFORCE_PRECOMMIT === 'true'
 
 if (!shouldRunChecks) {
@@ -5,7 +10,8 @@ if (!shouldRunChecks) {
     'Pre-commit checks are disabled. Set ENFORCE_PRECOMMIT=true to enable',
   )
   module.exports = {
-    '*': () => [],
+    [PATTERNS.TS]: [],
+    [PATTERNS.JS]: [],
   }
 } else {
   const {readdirSync} = require('fs')
@@ -33,7 +39,7 @@ if (!shouldRunChecks) {
   }
 
   module.exports = {
-    'src/**/*.{ts,tsx}': [prettier, typeCheck, eslint],
-    'src/**/*.{js,jsx,json}': [prettier, eslint],
+    [PATTERNS.TS]: [prettier, typeCheck, eslint],
+    [PATTERNS.JS]: [prettier, eslint],
   }
 }
