@@ -6,12 +6,11 @@ on:
     paths:
       - 'src/**'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   pr-check:
+    concurrency:
+      group: pr-check-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -182,7 +181,6 @@ jobs:
             echo "pr-passed=false" >> $GITHUB_OUTPUT
           fi
 
-      # Update the Report Status step to include timing information
       - name: Report PR Check Status
         if: always()
         uses: actions/github-script@v6
@@ -282,6 +280,9 @@ jobs:
             });
 
   full-check:
+    concurrency:
+      group: full-check-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: false
     needs: pr-check
     if: needs.pr-check.outputs.pr-passed == 'true'
     runs-on: ubuntu-latest
@@ -359,6 +360,14 @@ jobs:
             exit 1
           fi
           echo "Full check passed successfully"
+
+      - name: Collect Full Check Logs on Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: full-check-logs
+          path: logs/full/
+          retention-days: 5
 
       - name: Report Full Check Status
         if: always()
