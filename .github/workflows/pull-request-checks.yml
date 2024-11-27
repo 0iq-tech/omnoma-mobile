@@ -6,16 +6,20 @@ on:
     paths:
       - 'src/**'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  quality-check:
+  pr-check:
+    concurrency:
+      group: pr-check-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      pr-passed: ${{ steps.set-result.outputs.pr-passed }}
 
     if: github.event.pull_request.head.repo.full_name == github.repository
+
+    env:
+      NODE_OPTIONS: '--max-old-space-size=5120'
 
     steps:
       - name: Checkout code
@@ -30,57 +34,398 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --no-audit
+        run: npm ci --no-audit --prefer-offline
         env:
           NODE_ENV: development
+
+      - name: Cache build artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            .eslintcache
+            tsconfig.tsbuildinfo
+            node_modules/.cache/prettier
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json', '**/tsconfig.json', '**/.prettierrc') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Cache FSD results
+        uses: actions/cache@v3
+        with:
+          path: .fsd-cache
+          key: ${{ runner.os }}-fsd-${{ hashFiles('**/src/**/*.{ts,tsx}') }}
+          restore-keys: |
+            ${{ runner.os }}-fsd-
 
       - name: Get files for checking
         id: files-to-check
         run: |
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} | grep "^src/.*\.\(ts\|tsx\)$" || true)
-          ROOT_DTS_FILES=$(find . -maxdepth 1 -name "*.d.ts" -type f)
-          echo "changed=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} | grep "^src/.*\.\(ts\|tsx\)$" || echo "")
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No relevant files changed"
+            echo "changed=" >> $GITHUB_OUTPUT
+          else
+            echo "changed=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          fi
+          ROOT_DTS_FILES=$(find . -maxdepth 1 -name "*.d.ts" -type f || echo "")
           echo "dts=$ROOT_DTS_FILES" >> $GITHUB_OUTPUT
 
-      - name: Check TypeScript
-        id: typescript
+      # Group 1: TypeScript + Prettier
+      - name: Run Group 1 Checks
+        id: group-1
         if: steps.files-to-check.outputs.changed != ''
-        run: npx tscw --noEmit ${{ steps.files-to-check.outputs.changed }} ${{ steps.files-to-check.outputs.dts }}
-        continue-on-error: true
+        run: |
+          mkdir -p logs
 
-      - name: Check ESLint
-        id: eslint
-        if: steps.files-to-check.outputs.changed != ''
-        run: npx eslint ${{ steps.files-to-check.outputs.changed }}
-        continue-on-error: true
+          # Start time for the group
+          GROUP1_START=$(date +%s)
 
-      - name: Check Prettier
-        id: prettier
-        if: steps.files-to-check.outputs.changed != ''
-        run: npx prettier --check ${{ steps.files-to-check.outputs.changed }}
-        continue-on-error: true
+          # TypeScript with timing
+          TS_START=$(date +%s)
+          (NODE_OPTIONS="--max-old-space-size=3584" timeout 5m npx tsc --noEmit ${{ steps.files-to-check.outputs.changed }} ${{ steps.files-to-check.outputs.dts }} 2>&1 | tee logs/typescript.log) &
+          TS_PID=$!
 
-      - name: Run FSD Architecture check
-        id: fsd
-        run: npm run fsd:check
-        continue-on-error: true
+          # Prettier with timing
+          PRETTIER_START=$(date +%s)
+          (NODE_OPTIONS="--max-old-space-size=1024" timeout 3m npx prettier --check ${{ steps.files-to-check.outputs.changed }} 2>&1 | tee logs/prettier.log) &
+          PRETTIER_PID=$!
 
-      - name: Check all results
+          # Wait and calculate times
+          wait $TS_PID
+          TS_EXIT=$?
+          TS_END=$(date +%s)
+          TS_DURATION=$((TS_END - TS_START))
+
+          wait $PRETTIER_PID
+          PRETTIER_EXIT=$?
+          PRETTIER_END=$(date +%s)
+          PRETTIER_DURATION=$((PRETTIER_END - PRETTIER_START))
+
+          # Calculate total group time
+          GROUP1_END=$(date +%s)
+          GROUP1_DURATION=$((GROUP1_END - GROUP1_START))
+
+          # Save times to files for the report
+          echo $TS_DURATION > logs/typescript.time
+          echo $PRETTIER_DURATION > logs/prettier.time
+          echo $GROUP1_DURATION > logs/group1.time
+
+          # Check results
+          if [ $TS_EXIT -ne 0 ] || [ $PRETTIER_EXIT -ne 0 ]; then
+            echo "Group 1 Checks failed"
+            exit 1
+          fi
+          echo "Group 1 Checks passed successfully"
+
+      # Group 2: ESLint + FSD Architecture
+      - name: Run Group 2 Checks
+        id: group-2
+        if: success() || failure()
+        run: |
+          # Start time for the group
+          GROUP2_START=$(date +%s)
+
+          # ESLint with timing
+          ESLINT_START=$(date +%s)
+          (NODE_OPTIONS="--max-old-space-size=2048" timeout 4m npx eslint --report-unused-disable-directives --cache ${{ steps.files-to-check.outputs.changed }} 2>&1 | tee logs/eslint.log) &
+          ESLINT_PID=$!
+
+          # FSD check with timing
+          FSD_START=$(date +%s)
+          (NODE_OPTIONS="--max-old-space-size=2048" timeout 4m npm run fsd:check 2>&1 | tee logs/fsd.log) &
+          FSD_PID=$!
+
+          # Wait and calculate times
+          wait $ESLINT_PID
+          ESLINT_EXIT=$?
+          ESLINT_END=$(date +%s)
+          ESLINT_DURATION=$((ESLINT_END - ESLINT_START))
+
+          wait $FSD_PID
+          FSD_EXIT=$?
+          FSD_END=$(date +%s)
+          FSD_DURATION=$((FSD_END - FSD_START))
+
+          # Calculate total group time
+          GROUP2_END=$(date +%s)
+          GROUP2_DURATION=$((GROUP2_END - GROUP2_START))
+
+          # Save times to files for the report
+          echo $ESLINT_DURATION > logs/eslint.time
+          echo $FSD_DURATION > logs/fsd.time
+          echo $GROUP2_DURATION > logs/group2.time
+
+          # Check results
+          if [ $ESLINT_EXIT -ne 0 ] || [ $FSD_EXIT -ne 0 ]; then
+            echo "Group 2 Checks failed"
+            exit 1
+          fi
+          echo "Group 2 Checks passed successfully"
+
+      # Collect logs on failure
+      - name: Collect Logs on Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: check-logs
+          path: logs/
+          retention-days: 5
+
+      - name: Set PR Check Result
+        id: set-result
         if: always()
         run: |
-          if [ "${{ steps.typescript.outcome }}" != "success" ] && [ "${{ steps.files-to-check.outputs.changed }}" != "" ]; then
-            echo "TypeScript check failed"
+          if [ "${{ steps.group-1.outcome }}" = "success" ] && [ "${{ steps.group-2.outcome }}" = "success" ]; then
+            echo "pr-passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "pr-passed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Report PR Check Status
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { owner, repo, number } = context.issue;
+            const summary = [];
+            const details = [];
+            const timing = [];
+
+            // Function to format seconds to mm:ss
+            const formatTime = (seconds) => {
+              const mins = Math.floor(seconds / 60);
+              const secs = seconds % 60;
+              return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            // Read timing information
+            const fs = require('fs');
+            const readTime = (file) => {
+              try {
+                return parseInt(fs.readFileSync(`logs/${file}.time`));
+              } catch (e) {
+                return null;
+              }
+            };
+
+            if ('${{ steps.files-to-check.outputs.changed }}' === '') {
+              summary.push('⏭️ No relevant files to check');
+            } else {
+              const group1Time = readTime('group1');
+              const tsTime = readTime('typescript');
+              const prettierTime = readTime('prettier');
+              
+              if ('${{ steps.group-1.outcome }}' === 'success') {
+                summary.push('✅ Group 1: TypeScript and Prettier checks passed');
+                details.push('- TypeScript: Passed ✅');
+                details.push('- Prettier: Passed ✅');
+              } else {
+                summary.push('❌ Group 1: TypeScript and/or Prettier checks failed');
+                details.push('- Please check the logs for detailed errors');
+              }
+              
+              if (group1Time) {
+                timing.push(`⏱️ Group 1 total time: ${formatTime(group1Time)}`);
+                if (tsTime) timing.push(`  - TypeScript: ${formatTime(tsTime)}`);
+                if (prettierTime) timing.push(`  - Prettier: ${formatTime(prettierTime)}`);
+              }
+            }
+
+            const group2Time = readTime('group2');
+            const eslintTime = readTime('eslint');
+            const fsdTime = readTime('fsd');
+
+            if ('${{ steps.group-2.outcome }}' === 'success') {
+              summary.push('✅ Group 2: ESLint and FSD Architecture checks passed');
+              details.push('- ESLint: Passed ✅');
+              details.push('- FSD Architecture: Passed ✅');
+            } else {
+              summary.push('❌ Group 2: ESLint and/or FSD Architecture checks failed');
+              details.push('- Please check the logs for detailed errors');
+            }
+
+            if (group2Time) {
+              timing.push(`⏱️ Group 2 total time: ${formatTime(group2Time)}`);
+              if (eslintTime) timing.push(`  - ESLint: ${formatTime(eslintTime)}`);
+              if (fsdTime) timing.push(`  - FSD: ${formatTime(fsdTime)}`);
+            }
+
+            const message = [
+              '## PR Code Quality Check Results',
+              '',
+              ...summary,
+              '',
+              '### Details',
+              '',
+              ...details,
+              '',
+              '### Timing',
+              '',
+              ...timing,
+              '',
+              '> Memory allocation:',
+              '> - TypeScript: 3.5GB',
+              '> - Prettier: 1GB',
+              '> - ESLint: 2GB',
+              '> - FSD Architecture: 2GB',
+              '',
+              '_Logs are available as artifacts for failed runs_'
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body: message
+            });
+
+  full-check:
+    concurrency:
+      group: full-check-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: false
+    needs: pr-check
+    if: needs.pr-check.outputs.pr-passed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      NODE_OPTIONS: '--max-old-space-size=5120'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --prefer-offline
+        env:
+          NODE_ENV: development
+
+      - name: Cache build artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            .eslintcache
+            tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-full-build-${{ hashFiles('**/package-lock.json', '**/tsconfig.json') }}
+
+      - name: Run Full TypeScript and ESLint Check
+        id: full-check
+        run: |
+          mkdir -p logs/full
+
+          # Start time for the group
+          CHECK_START=$(date +%s)
+
+          # TypeScript with timing
+          TS_START=$(date +%s)
+          (NODE_OPTIONS="--max-old-space-size=5120" timeout 8m npx tsc --noEmit 2>&1 | tee logs/full/typescript.log) &
+          TS_PID=$!
+
+          # ESLint with timing
+          ESLINT_START=$(date +%s)
+          (NODE_OPTIONS="--max-old-space-size=5120" timeout 6m npx eslint --report-unused-disable-directives --cache "src/**/*.{ts,tsx}" 2>&1 | tee logs/full/eslint.log) &
+          ESLINT_PID=$!
+
+          # Wait and calculate times
+          wait $TS_PID
+          TS_EXIT=$?
+          TS_END=$(date +%s)
+          TS_DURATION=$((TS_END - TS_START))
+
+          wait $ESLINT_PID
+          ESLINT_EXIT=$?
+          ESLINT_END=$(date +%s)
+          ESLINT_DURATION=$((ESLINT_END - ESLINT_START))
+
+          # Calculate total time
+          CHECK_END=$(date +%s)
+          CHECK_DURATION=$((CHECK_END - CHECK_START))
+
+          # Save times to files for the report
+          echo $TS_DURATION > logs/full/typescript.time
+          echo $ESLINT_DURATION > logs/full/eslint.time
+          echo $CHECK_DURATION > logs/full/total.time
+
+          # Check results
+          if [ $TS_EXIT -ne 0 ] || [ $ESLINT_EXIT -ne 0 ]; then
+            echo "Full check failed"
             exit 1
           fi
-          if [ "${{ steps.eslint.outcome }}" != "success" ] && [ "${{ steps.files-to-check.outputs.changed }}" != "" ]; then
-            echo "ESLint check failed"
-            exit 1
-          fi
-          if [ "${{ steps.prettier.outcome }}" != "success" ] && [ "${{ steps.files-to-check.outputs.changed }}" != "" ]; then
-            echo "Prettier check failed"
-            exit 1
-          fi
-          if [ "${{ steps.fsd.outcome }}" != "success" ]; then
-            echo "FSD Architecture check failed"
-            exit 1
-          fi
+          echo "Full check passed successfully"
+
+      - name: Collect Full Check Logs on Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: full-check-logs
+          path: logs/full/
+          retention-days: 5
+
+      - name: Report Full Check Status
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Function to format seconds to mm:ss
+            const formatTime = (seconds) => {
+              const mins = Math.floor(seconds / 60);
+              const secs = seconds % 60;
+              return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            // Read timing information
+            const readTime = (file) => {
+              try {
+                return parseInt(fs.readFileSync(`logs/full/${file}.time`));
+              } catch (e) {
+                return null;
+              }
+            };
+
+            const tsTime = readTime('typescript');
+            const eslintTime = readTime('eslint');
+            const totalTime = readTime('total');
+
+            const timing = [];
+            if (totalTime) timing.push(`⏱️ Total time: ${formatTime(totalTime)}`);
+            if (tsTime) timing.push(`  - TypeScript: ${formatTime(tsTime)}`);
+            if (eslintTime) timing.push(`  - ESLint: ${formatTime(eslintTime)}`);
+
+            const message = [
+              '## Full Codebase Integration Check Results',
+              '',
+              '${{ steps.full-check.outcome }}' === 'success' 
+                ? '✅ Full TypeScript and ESLint checks passed successfully'
+                : '❌ Integration checks failed - potential type or dependency issues detected',
+              '',
+              '### Timing',
+              '',
+              ...timing,
+              '',
+              '### Details',
+              'This check verified:',
+              '- TypeScript types and integration across the entire codebase',
+              '- ESLint rules for imports, exports, and dependencies',
+              '',
+              '> Memory allocation:',
+              '> - TypeScript: 5GB',
+              '> - ESLint: 5GB',
+              '',
+              '_Full check logs are available as artifacts for failed runs_'
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body: message
+            });
