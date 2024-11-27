@@ -33,6 +33,8 @@ const NavigationContainer = reflect({
   },
 })
 
-export const withNavigationContainer = (node: () => React.ReactNode) => () => {
-  return <NavigationContainer node={node} />
+export const withNavigationContainer = (node: () => React.ReactNode) => {
+  const NavigationContainerWrapper = () => <NavigationContainer node={node} />
+  NavigationContainerWrapper.displayName = 'NavigationContainerWrapper'
+  return NavigationContainerWrapper
 }
