@@ -11,14 +11,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality-check:
+  pr-check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      pr-passed: ${{ steps.set-result.outputs.pr-passed }}
 
     if: github.event.pull_request.head.repo.full_name == github.repository
 
     env:
-      NODE_OPTIONS: '--max-old-space-size=6144'
+      NODE_OPTIONS: '--max-old-space-size=5120'
 
     steps:
       - name: Checkout code
@@ -170,8 +172,18 @@ jobs:
           path: logs/
           retention-days: 5
 
+      - name: Set PR Check Result
+        id: set-result
+        if: always()
+        run: |
+          if [ "${{ steps.group-1.outcome }}" = "success" ] && [ "${{ steps.group-2.outcome }}" = "success" ]; then
+            echo "pr-passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "pr-passed=false" >> $GITHUB_OUTPUT
+          fi
+
       # Update the Report Status step to include timing information
-      - name: Report Status
+      - name: Report PR Check Status
         if: always()
         uses: actions/github-script@v6
         with:
@@ -241,7 +253,7 @@ jobs:
             }
 
             const message = [
-              '## Code Quality Check Results',
+              '## PR Code Quality Check Results',
               '',
               ...summary,
               '',
@@ -266,5 +278,145 @@ jobs:
               owner,
               repo,
               issue_number: number,
+              body: message
+            });
+
+  full-check:
+    needs: pr-check
+    if: needs.pr-check.outputs.pr-passed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      NODE_OPTIONS: '--max-old-space-size=5120'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --prefer-offline
+        env:
+          NODE_ENV: development
+
+      - name: Cache build artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            .eslintcache
+            tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-full-build-${{ hashFiles('**/package-lock.json', '**/tsconfig.json') }}
+
+      - name: Run Full TypeScript and ESLint Check
+        id: full-check
+        run: |
+          mkdir -p logs/full
+
+          # Start time for the group
+          CHECK_START=$(date +%s)
+
+          # TypeScript with timing
+          TS_START=$(date +%s)
+          (NODE_OPTIONS="--max-old-space-size=5120" timeout 8m npx tsc --noEmit 2>&1 | tee logs/full/typescript.log) &
+          TS_PID=$!
+
+          # ESLint with timing
+          ESLINT_START=$(date +%s)
+          (NODE_OPTIONS="--max-old-space-size=5120" timeout 6m npx eslint --report-unused-disable-directives --cache "src/**/*.{ts,tsx}" 2>&1 | tee logs/full/eslint.log) &
+          ESLINT_PID=$!
+
+          # Wait and calculate times
+          wait $TS_PID
+          TS_EXIT=$?
+          TS_END=$(date +%s)
+          TS_DURATION=$((TS_END - TS_START))
+
+          wait $ESLINT_PID
+          ESLINT_EXIT=$?
+          ESLINT_END=$(date +%s)
+          ESLINT_DURATION=$((ESLINT_END - ESLINT_START))
+
+          # Calculate total time
+          CHECK_END=$(date +%s)
+          CHECK_DURATION=$((CHECK_END - CHECK_START))
+
+          # Save times to files for the report
+          echo $TS_DURATION > logs/full/typescript.time
+          echo $ESLINT_DURATION > logs/full/eslint.time
+          echo $CHECK_DURATION > logs/full/total.time
+
+          # Check results
+          if [ $TS_EXIT -ne 0 ] || [ $ESLINT_EXIT -ne 0 ]; then
+            echo "Full check failed"
+            exit 1
+          fi
+          echo "Full check passed successfully"
+
+      - name: Report Full Check Status
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Function to format seconds to mm:ss
+            const formatTime = (seconds) => {
+              const mins = Math.floor(seconds / 60);
+              const secs = seconds % 60;
+              return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            // Read timing information
+            const readTime = (file) => {
+              try {
+                return parseInt(fs.readFileSync(`logs/full/${file}.time`));
+              } catch (e) {
+                return null;
+              }
+            };
+
+            const tsTime = readTime('typescript');
+            const eslintTime = readTime('eslint');
+            const totalTime = readTime('total');
+
+            const timing = [];
+            if (totalTime) timing.push(`⏱️ Total time: ${formatTime(totalTime)}`);
+            if (tsTime) timing.push(`  - TypeScript: ${formatTime(tsTime)}`);
+            if (eslintTime) timing.push(`  - ESLint: ${formatTime(eslintTime)}`);
+
+            const message = [
+              '## Full Codebase Integration Check Results',
+              '',
+              '${{ steps.full-check.outcome }}' === 'success' 
+                ? '✅ Full TypeScript and ESLint checks passed successfully'
+                : '❌ Integration checks failed - potential type or dependency issues detected',
+              '',
+              '### Timing',
+              '',
+              ...timing,
+              '',
+              '### Details',
+              'This check verified:',
+              '- TypeScript types and integration across the entire codebase',
+              '- ESLint rules for imports, exports, and dependencies',
+              '',
+              '> Memory allocation:',
+              '> - TypeScript: 5GB',
+              '> - ESLint: 5GB',
+              '',
+              '_Full check logs are available as artifacts for failed runs_'
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
               body: message
             });
