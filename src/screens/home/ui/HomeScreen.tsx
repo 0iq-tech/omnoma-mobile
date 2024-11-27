@@ -17,7 +17,8 @@ function HomeScreen({onOpenCameraPress}: Props) {
         </Text>
         <TouchableOpacity
           className="mt-4 border rounded-full p-4"
-          onPress={onOpenCameraPress}>
+          onPress={onOpenCameraPress}
+        >
           <Text className="text-blue-500">Open Camera</Text>
         </TouchableOpacity>
       </View>
