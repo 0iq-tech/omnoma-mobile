@@ -43,12 +43,14 @@ jobs:
       - name: Comment PR
         if: always()
         uses: actions/github-script@v7
+        env:
+          STEP_OUTCOME: ${{ steps.fsd.outcome }}
         with:
           script: |
             const output = `### FSD Architecture Check Results
             ${process.env.STEIGER_OUTPUT || 'Check completed'}
 
-            Status: ${process.env.STATUS || (steps.fsd.outcome === 'success' ? '✅ Passed' : '❌ Failed')}`;
+            Status: ${process.env.STATUS || (process.env.STEP_OUTCOME === 'success' ? '✅ Passed' : '❌ Failed')}`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
