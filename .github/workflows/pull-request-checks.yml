@@ -43,9 +43,18 @@ jobs:
           path: |
             .eslintcache
             tsconfig.tsbuildinfo
-          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
+            node_modules/.cache/prettier
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json', '**/tsconfig.json', '**/.prettierrc') }}
           restore-keys: |
             ${{ runner.os }}-build-
+
+      - name: Cache FSD results
+        uses: actions/cache@v3
+        with:
+          path: .fsd-cache
+          key: ${{ runner.os }}-fsd-${{ hashFiles('**/src/**/*.{ts,tsx}') }}
+          restore-keys: |
+            ${{ runner.os }}-fsd-
 
       - name: Get files for checking
         id: files-to-check
@@ -60,27 +69,45 @@ jobs:
           ROOT_DTS_FILES=$(find . -maxdepth 1 -name "*.d.ts" -type f || echo "")
           echo "dts=$ROOT_DTS_FILES" >> $GITHUB_OUTPUT
 
-      # Group 1: TypeScript + Prettier (balancing heavy + light)
+      # Group 1: TypeScript + Prettier
       - name: Run Group 1 Checks
         id: group-1
         if: steps.files-to-check.outputs.changed != ''
         run: |
-          # Create log directories
           mkdir -p logs
 
-          # Run TypeScript check (heavy) with higher memory limit
-          (NODE_OPTIONS="--max-old-space-size=4096" timeout 5m npx tscw --noEmit ${{ steps.files-to-check.outputs.changed }} ${{ steps.files-to-check.outputs.dts }} 2>&1 | tee logs/typescript.log) &
+          # Start time for the group
+          GROUP1_START=$(date +%s)
+
+          # TypeScript with timing
+          TS_START=$(date +%s)
+          (NODE_OPTIONS="--max-old-space-size=3584" timeout 5m npx tsc --noEmit ${{ steps.files-to-check.outputs.changed }} ${{ steps.files-to-check.outputs.dts }} 2>&1 | tee logs/typescript.log) &
           TS_PID=$!
 
-          # Run Prettier (light) with lower memory limit
+          # Prettier with timing
+          PRETTIER_START=$(date +%s)
           (NODE_OPTIONS="--max-old-space-size=1024" timeout 3m npx prettier --check ${{ steps.files-to-check.outputs.changed }} 2>&1 | tee logs/prettier.log) &
           PRETTIER_PID=$!
 
-          # Wait for both processes
+          # Wait and calculate times
           wait $TS_PID
           TS_EXIT=$?
+          TS_END=$(date +%s)
+          TS_DURATION=$((TS_END - TS_START))
+
           wait $PRETTIER_PID
           PRETTIER_EXIT=$?
+          PRETTIER_END=$(date +%s)
+          PRETTIER_DURATION=$((PRETTIER_END - PRETTIER_START))
+
+          # Calculate total group time
+          GROUP1_END=$(date +%s)
+          GROUP1_DURATION=$((GROUP1_END - GROUP1_START))
+
+          # Save times to files for the report
+          echo $TS_DURATION > logs/typescript.time
+          echo $PRETTIER_DURATION > logs/prettier.time
+          echo $GROUP1_DURATION > logs/group1.time
 
           # Check results
           if [ $TS_EXIT -ne 0 ] || [ $PRETTIER_EXIT -ne 0 ]; then
@@ -89,24 +116,43 @@ jobs:
           fi
           echo "Group 1 Checks passed successfully"
 
-      # Group 2: ESLint + FSD Architecture (balancing medium + medium)
+      # Group 2: ESLint + FSD Architecture
       - name: Run Group 2 Checks
         id: group-2
         if: success() || failure()
         run: |
-          # Run ESLint (medium) with moderate memory limit
+          # Start time for the group
+          GROUP2_START=$(date +%s)
+
+          # ESLint with timing
+          ESLINT_START=$(date +%s)
           (NODE_OPTIONS="--max-old-space-size=2048" timeout 4m npx eslint --report-unused-disable-directives --cache ${{ steps.files-to-check.outputs.changed }} 2>&1 | tee logs/eslint.log) &
           ESLINT_PID=$!
 
-          # Run FSD Architecture check (medium) with moderate memory limit
+          # FSD check with timing
+          FSD_START=$(date +%s)
           (NODE_OPTIONS="--max-old-space-size=2048" timeout 4m npm run fsd:check 2>&1 | tee logs/fsd.log) &
           FSD_PID=$!
 
-          # Wait for both processes
+          # Wait and calculate times
           wait $ESLINT_PID
           ESLINT_EXIT=$?
+          ESLINT_END=$(date +%s)
+          ESLINT_DURATION=$((ESLINT_END - ESLINT_START))
+
           wait $FSD_PID
           FSD_EXIT=$?
+          FSD_END=$(date +%s)
+          FSD_DURATION=$((FSD_END - FSD_START))
+
+          # Calculate total group time
+          GROUP2_END=$(date +%s)
+          GROUP2_DURATION=$((GROUP2_END - GROUP2_START))
+
+          # Save times to files for the report
+          echo $ESLINT_DURATION > logs/eslint.time
+          echo $FSD_DURATION > logs/fsd.time
+          echo $GROUP2_DURATION > logs/group2.time
 
           # Check results
           if [ $ESLINT_EXIT -ne 0 ] || [ $FSD_EXIT -ne 0 ]; then
@@ -115,25 +161,16 @@ jobs:
           fi
           echo "Group 2 Checks passed successfully"
 
-      - name: Collect Errors
+      # Collect logs on failure
+      - name: Collect Logs on Failure
         if: failure()
-        run: |
-          echo "::group::TypeScript Errors"
-          cat logs/typescript.log || true
-          echo "::endgroup::"
+        uses: actions/upload-artifact@v3
+        with:
+          name: check-logs
+          path: logs/
+          retention-days: 5
 
-          echo "::group::ESLint Errors"
-          cat logs/eslint.log || true
-          echo "::endgroup::"
-
-          echo "::group::Prettier Errors"
-          cat logs/prettier.log || true
-          echo "::endgroup::"
-
-          echo "::group::FSD Architecture Errors"
-          cat logs/fsd.log || true
-          echo "::endgroup::"
-
+      # Update the Report Status step to include timing information
       - name: Report Status
         if: always()
         uses: actions/github-script@v6
@@ -142,10 +179,32 @@ jobs:
             const { owner, repo, number } = context.issue;
             const summary = [];
             const details = [];
+            const timing = [];
+
+            // Function to format seconds to mm:ss
+            const formatTime = (seconds) => {
+              const mins = Math.floor(seconds / 60);
+              const secs = seconds % 60;
+              return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            // Read timing information
+            const fs = require('fs');
+            const readTime = (file) => {
+              try {
+                return parseInt(fs.readFileSync(`logs/${file}.time`));
+              } catch (e) {
+                return null;
+              }
+            };
 
             if ('${{ steps.files-to-check.outputs.changed }}' === '') {
               summary.push('⏭️ No relevant files to check');
             } else {
+              const group1Time = readTime('group1');
+              const tsTime = readTime('typescript');
+              const prettierTime = readTime('prettier');
+              
               if ('${{ steps.group-1.outcome }}' === 'success') {
                 summary.push('✅ Group 1: TypeScript and Prettier checks passed');
                 details.push('- TypeScript: Passed ✅');
@@ -154,7 +213,17 @@ jobs:
                 summary.push('❌ Group 1: TypeScript and/or Prettier checks failed');
                 details.push('- Please check the logs for detailed errors');
               }
+              
+              if (group1Time) {
+                timing.push(`⏱️ Group 1 total time: ${formatTime(group1Time)}`);
+                if (tsTime) timing.push(`  - TypeScript: ${formatTime(tsTime)}`);
+                if (prettierTime) timing.push(`  - Prettier: ${formatTime(prettierTime)}`);
+              }
             }
+
+            const group2Time = readTime('group2');
+            const eslintTime = readTime('eslint');
+            const fsdTime = readTime('fsd');
 
             if ('${{ steps.group-2.outcome }}' === 'success') {
               summary.push('✅ Group 2: ESLint and FSD Architecture checks passed');
@@ -163,6 +232,12 @@ jobs:
             } else {
               summary.push('❌ Group 2: ESLint and/or FSD Architecture checks failed');
               details.push('- Please check the logs for detailed errors');
+            }
+
+            if (group2Time) {
+              timing.push(`⏱️ Group 2 total time: ${formatTime(group2Time)}`);
+              if (eslintTime) timing.push(`  - ESLint: ${formatTime(eslintTime)}`);
+              if (fsdTime) timing.push(`  - FSD: ${formatTime(fsdTime)}`);
             }
 
             const message = [
@@ -174,11 +249,17 @@ jobs:
               '',
               ...details,
               '',
+              '### Timing',
+              '',
+              ...timing,
+              '',
               '> Memory allocation:',
-              '> - TypeScript: 4GB',
+              '> - TypeScript: 3.5GB',
               '> - Prettier: 1GB',
               '> - ESLint: 2GB',
-              '> - FSD Architecture: 2GB'
+              '> - FSD Architecture: 2GB',
+              '',
+              '_Logs are available as artifacts for failed runs_'
             ].join('\n');
 
             await github.rest.issues.createComment({
