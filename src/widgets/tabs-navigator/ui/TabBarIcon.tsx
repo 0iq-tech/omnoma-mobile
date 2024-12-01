@@ -1,6 +1,6 @@
 import {FontAwesome} from '@expo/vector-icons'
 import React, {memo} from 'react'
-import {TAB_ICONS} from '../lib'
+import {TAB_ICONS} from '../config'
 
 interface Props {
   name: keyof typeof TAB_ICONS
