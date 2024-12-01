@@ -1,0 +1,12 @@
+appId: com.omnoma.mobile
+name: Camera Screen Flow Test (With Permissions)
+---
+- launchApp
+- waitForAnimationToEnd
+
+# Test the home screen camera button
+- tapOn: 'Open Camera'
+- waitForAnimationToEnd
+
+# Check camera view is visible
+- assertVisible: 'Take Photo of Your Food'

@@ -52,6 +52,7 @@ export const useBootsplashAnimation = (): BootsplashAnimationHook => {
 
     await Promise.all(animations)
     onComplete()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return {

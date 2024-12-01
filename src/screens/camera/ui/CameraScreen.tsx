@@ -4,9 +4,7 @@ import {FoodCameraView} from 'features/analyze-food'
 import {Button, Text, View} from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
 
-interface Props {}
-
-function CameraScreen({}: Props) {
+function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions()
 
   if (!permission) {
