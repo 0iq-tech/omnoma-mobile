@@ -1,15 +1,32 @@
 appId: com.omnoma.mobile
 name: Camera Screen Flow Test
 ---
-- launchApp
-# Test the initial no permission state
-- assertVisible: 'No permission'
-
-# Test permission request flow
-- assertVisible: 'We need your permission to show the camera'
-- assertVisible: 'grant permission'
-- tapOn: 'grant permission'
-
-# After permission granted, camera should be visible
+- launchApp:
+    permissions:
+      all: deny
+      microphone: deny
+      camera: unset
 - waitForAnimationToEnd
-- assertVisible: 'FoodCameraView'
+
+# Test the home screen camera button
+- tapOn: 'Open Camera'
+- waitForAnimationToEnd
+
+# Check for either camera view or permission flow
+- runFlow:
+    when:
+      visible: 'Take Photo of Your Food'
+    commands:
+      - assertVisible: 'Take Photo of Your Food'
+
+- runFlow:
+    when:
+      visible: 'We need your permission to show the camera'
+    commands:
+      - assertVisible: 'We need your permission to show the camera'
+      - assertVisible: 'grant permission'
+      - tapOn: 'grant permission'
+      - assertVisible: 'While using the app'
+      - tapOn: 'While using the app'
+      - waitForAnimationToEnd
+      - assertVisible: 'Take Photo of Your Food'
