@@ -65,13 +65,34 @@ jobs:
       - name: Get files for checking
         id: files-to-check
         run: |
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} | grep "^src/.*\.\(ts\|tsx\)$" || echo "")
+          # Ensure we're comparing against the base branch
+          git fetch origin ${{ github.base_ref }}
+
+          # Get changed files, handling potential errors
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} -- 'src/**/*.ts' 'src/**/*.tsx' || echo "")
+
           if [ -z "$CHANGED_FILES" ]; then
             echo "No relevant files changed"
             echo "changed=" >> $GITHUB_OUTPUT
           else
-            echo "changed=$CHANGED_FILES" >> $GITHUB_OUTPUT
+            # Validate each file exists before adding to output
+            VALID_FILES=""
+            while IFS= read -r file; do
+              if [ -f "$file" ]; then
+                VALID_FILES="${VALID_FILES}${file}\n"
+              fi
+            done <<< "$CHANGED_FILES"
+            
+            if [ -z "$VALID_FILES" ]; then
+              echo "No valid files to check"
+              echo "changed=" >> $GITHUB_OUTPUT
+            else
+              echo -e "$VALID_FILES" | tr '\n' ' ' > changed_files.txt
+              echo "changed=$(cat changed_files.txt)" >> $GITHUB_OUTPUT
+            fi
           fi
+
+          # Get root .d.ts files
           ROOT_DTS_FILES=$(find . -maxdepth 1 -name "*.d.ts" -type f || echo "")
           echo "dts=$ROOT_DTS_FILES" >> $GITHUB_OUTPUT
 
