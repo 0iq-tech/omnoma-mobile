@@ -7,17 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		12D4C650527F489C84380FC7 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AF22B09B529A49AC93ED19EC /* BootSplash.storyboard */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		8F5361E5896C40F6A7CCFF9E /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86372D98383C4D3BAD14E926 /* Colors.xcassets */; };
+		4D5D382F169173F2EF7D0CF8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9B8C600E73C9DBF2A5A011B0 /* PrivacyInfo.xcprivacy */; };
+		86420B8B290D447C80C25721 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 69171D65D0C04A7386D74F0C /* BootSplash.storyboard */; };
+		8789ACEBFE5240B1A98EBC90 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 95F87A57ECBF4DE7B80EAB03 /* Colors.xcassets */; };
 		96905EF65AED1B983A6B3ABC /* libPods-omnoma.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 58EEBF8E8E6FB1BC6CAF49B5 /* libPods-omnoma.a */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		DA7D071B5A4D496EBC0E9DD3 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462195FFBB444F0C80ACD869 /* noop-file.swift */; };
-		FD8991B37A30BDF94CA029B8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 830C64D4E048FC26D5B3627B /* PrivacyInfo.xcprivacy */; };
+		F0B2BB515A6346F98B162977 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77833495ECB241B4A278D1BB /* noop-file.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,16 +27,16 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = omnoma/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = omnoma/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = omnoma/main.m; sourceTree = "<group>"; };
-		462195FFBB444F0C80ACD869 /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "omnoma/noop-file.swift"; sourceTree = "<group>"; };
 		58EEBF8E8E6FB1BC6CAF49B5 /* libPods-omnoma.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-omnoma.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		69171D65D0C04A7386D74F0C /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = omnoma/BootSplash.storyboard; sourceTree = "<group>"; };
 		6C2E3173556A471DD304B334 /* Pods-omnoma.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-omnoma.debug.xcconfig"; path = "Target Support Files/Pods-omnoma/Pods-omnoma.debug.xcconfig"; sourceTree = "<group>"; };
+		77833495ECB241B4A278D1BB /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "omnoma/noop-file.swift"; sourceTree = "<group>"; };
 		7A4D352CD337FB3A3BF06240 /* Pods-omnoma.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-omnoma.release.xcconfig"; path = "Target Support Files/Pods-omnoma/Pods-omnoma.release.xcconfig"; sourceTree = "<group>"; };
-		830C64D4E048FC26D5B3627B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = omnoma/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		86372D98383C4D3BAD14E926 /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = omnoma/Colors.xcassets; sourceTree = "<group>"; };
+		95F87A57ECBF4DE7B80EAB03 /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = omnoma/Colors.xcassets; sourceTree = "<group>"; };
+		9B8C600E73C9DBF2A5A011B0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = omnoma/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = omnoma/SplashScreen.storyboard; sourceTree = "<group>"; };
-		AF22B09B529A49AC93ED19EC /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = omnoma/BootSplash.storyboard; sourceTree = "<group>"; };
+		B134890B1EE14FDD99C9C3CA /* omnoma-Bridging-Header.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "omnoma-Bridging-Header.h"; path = "omnoma/omnoma-Bridging-Header.h"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		DEA2A85885CC459AA1C734A5 /* omnoma-Bridging-Header.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "omnoma-Bridging-Header.h"; path = "omnoma/omnoma-Bridging-Header.h"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-omnoma/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -63,11 +63,11 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				462195FFBB444F0C80ACD869 /* noop-file.swift */,
-				DEA2A85885CC459AA1C734A5 /* omnoma-Bridging-Header.h */,
-				AF22B09B529A49AC93ED19EC /* BootSplash.storyboard */,
-				86372D98383C4D3BAD14E926 /* Colors.xcassets */,
-				830C64D4E048FC26D5B3627B /* PrivacyInfo.xcprivacy */,
+				77833495ECB241B4A278D1BB /* noop-file.swift */,
+				B134890B1EE14FDD99C9C3CA /* omnoma-Bridging-Header.h */,
+				69171D65D0C04A7386D74F0C /* BootSplash.storyboard */,
+				95F87A57ECBF4DE7B80EAB03 /* Colors.xcassets */,
+				9B8C600E73C9DBF2A5A011B0 /* PrivacyInfo.xcprivacy */,
 			);
 			name = omnoma;
 			sourceTree = "<group>";
@@ -153,13 +153,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "omnoma" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				DBF2F9F2AA370001B35001DA /* [Expo] Configure project */,
+				615C4FB8139581D808D7FA4A /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				955167AFFEA71C203C6BD24D /* [CP] Embed Pods Frameworks */,
+				CD4AF91937057E0D6373871E /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -209,9 +209,9 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				12D4C650527F489C84380FC7 /* BootSplash.storyboard in Resources */,
-				8F5361E5896C40F6A7CCFF9E /* Colors.xcassets in Resources */,
-				FD8991B37A30BDF94CA029B8 /* PrivacyInfo.xcprivacy in Resources */,
+				86420B8B290D447C80C25721 /* BootSplash.storyboard in Resources */,
+				8789ACEBFE5240B1A98EBC90 /* Colors.xcassets in Resources */,
+				4D5D382F169173F2EF7D0CF8 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,6 +255,25 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		615C4FB8139581D808D7FA4A /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-omnoma/expo-configure-project.sh\"\n";
+		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -289,7 +308,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-omnoma/Pods-omnoma-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		955167AFFEA71C203C6BD24D /* [CP] Embed Pods Frameworks */ = {
+		CD4AF91937057E0D6373871E /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -307,25 +326,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-omnoma/Pods-omnoma-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		DBF2F9F2AA370001B35001DA /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-omnoma/expo-configure-project.sh\"\n";
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -336,7 +336,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */,
-				DA7D071B5A4D496EBC0E9DD3 /* noop-file.swift in Sources */,
+				F0B2BB515A6346F98B162977 /* noop-file.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
