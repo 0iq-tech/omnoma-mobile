@@ -3,7 +3,7 @@ import {RouteProp} from '@react-navigation/native'
 import React, {useCallback, useMemo} from 'react'
 import {TabPapamList} from 'shared/navigation'
 import {BASE_SCREEN_OPTIONS, SCREEN_COMPONENTS, SCREENS} from '../lib'
-import {TabBarIcon} from './TabBarIcon'
+import TabBarIcon from './TabBarIcon'
 
 const {Navigator, Screen} = createBottomTabNavigator<TabPapamList>()
 
