@@ -15,6 +15,7 @@ module.exports = function (api) {
             app: './src/app',
             screens: './src/screens',
             features: './src/features',
+            widgets: './src/widgets',
             shared: './src/shared',
           },
         },

@@ -6,6 +6,11 @@ on:
     paths:
       - 'src/**'
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
   pr-check:
     concurrency:
@@ -34,7 +39,12 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --no-audit --prefer-offline
+        id: install
+        run: |
+          START_TIME=$(date +%s)
+          npm ci --no-audit --prefer-offline
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
           NODE_ENV: development
 
@@ -60,109 +70,97 @@ jobs:
       - name: Get files for checking
         id: files-to-check
         run: |
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} | grep "^src/.*\.\(ts\|tsx\)$" || echo "")
+          # Ensure we're comparing against the base branch
+          git fetch origin ${{ github.base_ref }}
+
+          # Get changed files, handling potential errors
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} -- 'src/**/*.ts' 'src/**/*.tsx' || echo "")
+
           if [ -z "$CHANGED_FILES" ]; then
             echo "No relevant files changed"
             echo "changed=" >> $GITHUB_OUTPUT
           else
-            echo "changed=$CHANGED_FILES" >> $GITHUB_OUTPUT
+            # Validate each file exists before adding to output
+            VALID_FILES=""
+            while IFS= read -r file; do
+              if [ -f "$file" ]; then
+                VALID_FILES="${VALID_FILES}${file}\n"
+              fi
+            done <<< "$CHANGED_FILES"
+            
+            if [ -z "$VALID_FILES" ]; then
+              echo "No valid files to check"
+              echo "changed=" >> $GITHUB_OUTPUT
+            else
+              echo -e "$VALID_FILES" | tr '\n' ' ' > changed_files.txt
+              echo "changed=$(cat changed_files.txt)" >> $GITHUB_OUTPUT
+            fi
           fi
+
+          # Get root .d.ts files
           ROOT_DTS_FILES=$(find . -maxdepth 1 -name "*.d.ts" -type f || echo "")
           echo "dts=$ROOT_DTS_FILES" >> $GITHUB_OUTPUT
 
-      # Group 1: TypeScript + Prettier
       - name: Run Group 1 Checks
         id: group-1
         if: steps.files-to-check.outputs.changed != ''
         run: |
+          START_TIME=$(date +%s)
+
           mkdir -p logs
 
-          # Start time for the group
-          GROUP1_START=$(date +%s)
-
-          # TypeScript with timing
-          TS_START=$(date +%s)
-          (NODE_OPTIONS="--max-old-space-size=3584" timeout 5m npx tsc --noEmit ${{ steps.files-to-check.outputs.changed }} ${{ steps.files-to-check.outputs.dts }} 2>&1 | tee logs/typescript.log) &
+          # Run TypeScript check
+          NODE_OPTIONS="--max-old-space-size=3584" timeout 5m npx tscw --noEmit ${{ steps.files-to-check.outputs.changed }} ${{ steps.files-to-check.outputs.dts }} &
           TS_PID=$!
 
-          # Prettier with timing
-          PRETTIER_START=$(date +%s)
-          (NODE_OPTIONS="--max-old-space-size=1024" timeout 3m npx prettier --check ${{ steps.files-to-check.outputs.changed }} 2>&1 | tee logs/prettier.log) &
+          # Run Prettier check
+          NODE_OPTIONS="--max-old-space-size=1024" timeout 3m npx prettier --check ${{ steps.files-to-check.outputs.changed }} &
           PRETTIER_PID=$!
 
-          # Wait and calculate times
+          # Wait for both processes
           wait $TS_PID
           TS_EXIT=$?
-          TS_END=$(date +%s)
-          TS_DURATION=$((TS_END - TS_START))
-
           wait $PRETTIER_PID
           PRETTIER_EXIT=$?
-          PRETTIER_END=$(date +%s)
-          PRETTIER_DURATION=$((PRETTIER_END - PRETTIER_START))
 
-          # Calculate total group time
-          GROUP1_END=$(date +%s)
-          GROUP1_DURATION=$((GROUP1_END - GROUP1_START))
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
 
-          # Save times to files for the report
-          echo $TS_DURATION > logs/typescript.time
-          echo $PRETTIER_DURATION > logs/prettier.time
-          echo $GROUP1_DURATION > logs/group1.time
-
-          # Check results
           if [ $TS_EXIT -ne 0 ] || [ $PRETTIER_EXIT -ne 0 ]; then
             echo "Group 1 Checks failed"
             exit 1
           fi
           echo "Group 1 Checks passed successfully"
 
-      # Group 2: ESLint + FSD Architecture
       - name: Run Group 2 Checks
         id: group-2
         if: success() || failure()
         run: |
-          # Start time for the group
-          GROUP2_START=$(date +%s)
+          START_TIME=$(date +%s)
 
-          # ESLint with timing
-          ESLINT_START=$(date +%s)
-          (NODE_OPTIONS="--max-old-space-size=2048" timeout 4m npx eslint --report-unused-disable-directives --cache ${{ steps.files-to-check.outputs.changed }} 2>&1 | tee logs/eslint.log) &
+          # Run ESLint check
+          NODE_OPTIONS="--max-old-space-size=2048" timeout 4m npx eslint --report-unused-disable-directives --cache ${{ steps.files-to-check.outputs.changed }} &
           ESLINT_PID=$!
 
-          # FSD check with timing
-          FSD_START=$(date +%s)
-          (NODE_OPTIONS="--max-old-space-size=2048" timeout 4m npm run fsd:check 2>&1 | tee logs/fsd.log) &
+          # Run FSD check
+          NODE_OPTIONS="--max-old-space-size=2048" timeout 4m npm run fsd:check &
           FSD_PID=$!
 
-          # Wait and calculate times
+          # Wait for both processes
           wait $ESLINT_PID
           ESLINT_EXIT=$?
-          ESLINT_END=$(date +%s)
-          ESLINT_DURATION=$((ESLINT_END - ESLINT_START))
-
           wait $FSD_PID
           FSD_EXIT=$?
-          FSD_END=$(date +%s)
-          FSD_DURATION=$((FSD_END - FSD_START))
 
-          # Calculate total group time
-          GROUP2_END=$(date +%s)
-          GROUP2_DURATION=$((GROUP2_END - GROUP2_START))
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
 
-          # Save times to files for the report
-          echo $ESLINT_DURATION > logs/eslint.time
-          echo $FSD_DURATION > logs/fsd.time
-          echo $GROUP2_DURATION > logs/group2.time
-
-          # Check results
           if [ $ESLINT_EXIT -ne 0 ] || [ $FSD_EXIT -ne 0 ]; then
             echo "Group 2 Checks failed"
             exit 1
           fi
           echo "Group 2 Checks passed successfully"
 
-      # Collect logs on failure
       - name: Collect Logs on Failure
         if: failure()
         uses: actions/upload-artifact@v3
@@ -187,90 +185,58 @@ jobs:
         with:
           script: |
             const { owner, repo, number } = context.issue;
-            const summary = [];
-            const details = [];
-            const timing = [];
 
-            // Function to format seconds to mm:ss
-            const formatTime = (seconds) => {
+            // Function to format duration in minutes and seconds
+            const formatDuration = (seconds) => {
+              if (!seconds) return 'N/A';
               const mins = Math.floor(seconds / 60);
               const secs = seconds % 60;
-              return `${mins}:${secs.toString().padStart(2, '0')}`;
+              return mins > 0 
+                ? `${mins}m ${secs}s`
+                : `${secs}s`;
             };
 
-            // Read timing information
-            const fs = require('fs');
-            const readTime = (file) => {
-              try {
-                return parseInt(fs.readFileSync(`logs/${file}.time`));
-              } catch (e) {
-                return null;
-              }
-            };
+            const installTime = parseInt('${{ steps.install.outputs.duration }}' || '0');
+            const group1Time = parseInt('${{ steps.group-1.outputs.duration }}' || '0');
+            const group2Time = parseInt('${{ steps.group-2.outputs.duration }}' || '0');
+
+            const summary = [];
+            const details = [];
 
             if ('${{ steps.files-to-check.outputs.changed }}' === '') {
               summary.push('⏭️ No relevant files to check');
             } else {
-              const group1Time = readTime('group1');
-              const tsTime = readTime('typescript');
-              const prettierTime = readTime('prettier');
-              
               if ('${{ steps.group-1.outcome }}' === 'success') {
-                summary.push('✅ Group 1: TypeScript and Prettier checks passed');
-                details.push('- TypeScript: Passed ✅');
-                details.push('- Prettier: Passed ✅');
+                summary.push('✅ TypeScript & Prettier');
               } else {
-                summary.push('❌ Group 1: TypeScript and/or Prettier checks failed');
-                details.push('- Please check the logs for detailed errors');
-              }
-              
-              if (group1Time) {
-                timing.push(`⏱️ Group 1 total time: ${formatTime(group1Time)}`);
-                if (tsTime) timing.push(`  - TypeScript: ${formatTime(tsTime)}`);
-                if (prettierTime) timing.push(`  - Prettier: ${formatTime(prettierTime)}`);
+                summary.push('❌ TypeScript & Prettier checks failed');
               }
             }
-
-            const group2Time = readTime('group2');
-            const eslintTime = readTime('eslint');
-            const fsdTime = readTime('fsd');
 
             if ('${{ steps.group-2.outcome }}' === 'success') {
-              summary.push('✅ Group 2: ESLint and FSD Architecture checks passed');
-              details.push('- ESLint: Passed ✅');
-              details.push('- FSD Architecture: Passed ✅');
+              summary.push('✅ ESLint & FSD Architecture');
             } else {
-              summary.push('❌ Group 2: ESLint and/or FSD Architecture checks failed');
-              details.push('- Please check the logs for detailed errors');
+              summary.push('❌ ESLint & FSD Architecture checks failed');
             }
 
-            if (group2Time) {
-              timing.push(`⏱️ Group 2 total time: ${formatTime(group2Time)}`);
-              if (eslintTime) timing.push(`  - ESLint: ${formatTime(eslintTime)}`);
-              if (fsdTime) timing.push(`  - FSD: ${formatTime(fsdTime)}`);
+            if ('${{ job.status }}' !== 'success') {
+              details.push('🔍 Check job logs for error details');
             }
+
+            const totalTime = installTime + group1Time + group2Time;
 
             const message = [
-              '## PR Code Quality Check Results',
+              '## Code Quality Check',
               '',
               ...summary,
               '',
-              '### Details',
-              '',
               ...details,
               '',
-              '### Timing',
-              '',
-              ...timing,
-              '',
-              '> Memory allocation:',
-              '> - TypeScript: 3.5GB',
-              '> - Prettier: 1GB',
-              '> - ESLint: 2GB',
-              '> - FSD Architecture: 2GB',
-              '',
-              '_Logs are available as artifacts for failed runs_'
-            ].join('\n');
+              `⏱️ Total time: ${formatDuration(totalTime)}`,
+              `📦 Setup: ${formatDuration(installTime)}`,
+              group1Time ? `🔍 Lint Group 1: ${formatDuration(group1Time)}` : '',
+              group2Time ? `🔍 Lint Group 2: ${formatDuration(group2Time)}` : '',
+            ].filter(Boolean).join('\n');
 
             await github.rest.issues.createComment({
               owner,
@@ -304,7 +270,12 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --no-audit --prefer-offline
+        id: install
+        run: |
+          START_TIME=$(date +%s)
+          npm ci --no-audit --prefer-offline
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
           NODE_ENV: development
 
@@ -319,42 +290,27 @@ jobs:
       - name: Run Full TypeScript and ESLint Check
         id: full-check
         run: |
+          START_TIME=$(date +%s)
+
           mkdir -p logs/full
 
-          # Start time for the group
-          CHECK_START=$(date +%s)
-
-          # TypeScript with timing
-          TS_START=$(date +%s)
-          (NODE_OPTIONS="--max-old-space-size=5120" timeout 8m npx tsc --noEmit 2>&1 | tee logs/full/typescript.log) &
+          # Run TypeScript check
+          NODE_OPTIONS="--max-old-space-size=5120" timeout 8m npx tsc --noEmit &
           TS_PID=$!
 
-          # ESLint with timing
-          ESLINT_START=$(date +%s)
-          (NODE_OPTIONS="--max-old-space-size=5120" timeout 6m npx eslint --report-unused-disable-directives --cache "src/**/*.{ts,tsx}" 2>&1 | tee logs/full/eslint.log) &
+          # Run ESLint check
+          NODE_OPTIONS="--max-old-space-size=5120" timeout 6m npx eslint --report-unused-disable-directives --cache "src/**/*.{ts,tsx}" &
           ESLINT_PID=$!
 
-          # Wait and calculate times
+          # Wait for both processes
           wait $TS_PID
           TS_EXIT=$?
-          TS_END=$(date +%s)
-          TS_DURATION=$((TS_END - TS_START))
-
           wait $ESLINT_PID
           ESLINT_EXIT=$?
-          ESLINT_END=$(date +%s)
-          ESLINT_DURATION=$((ESLINT_END - ESLINT_START))
 
-          # Calculate total time
-          CHECK_END=$(date +%s)
-          CHECK_DURATION=$((CHECK_END - CHECK_START))
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
 
-          # Save times to files for the report
-          echo $TS_DURATION > logs/full/typescript.time
-          echo $ESLINT_DURATION > logs/full/eslint.time
-          echo $CHECK_DURATION > logs/full/total.time
-
-          # Check results
           if [ $TS_EXIT -ne 0 ] || [ $ESLINT_EXIT -ne 0 ]; then
             echo "Full check failed"
             exit 1
@@ -374,58 +330,41 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const fs = require('fs');
+            const { owner, repo, number } = context.issue;
 
-            // Function to format seconds to mm:ss
-            const formatTime = (seconds) => {
+            // Function to format duration in minutes and seconds
+            const formatDuration = (seconds) => {
+              if (!seconds) return 'N/A';
               const mins = Math.floor(seconds / 60);
               const secs = seconds % 60;
-              return `${mins}:${secs.toString().padStart(2, '0')}`;
+              return mins > 0 
+                ? `${mins}m ${secs}s`
+                : `${secs}s`;
             };
 
-            // Read timing information
-            const readTime = (file) => {
-              try {
-                return parseInt(fs.readFileSync(`logs/full/${file}.time`));
-              } catch (e) {
-                return null;
-              }
-            };
+            const installTime = parseInt('${{ steps.install.outputs.duration }}' || '0');
+            const checkTime = parseInt('${{ steps.full-check.outputs.duration }}' || '0');
+            const totalTime = installTime + checkTime;
 
-            const tsTime = readTime('typescript');
-            const eslintTime = readTime('eslint');
-            const totalTime = readTime('total');
-
-            const timing = [];
-            if (totalTime) timing.push(`⏱️ Total time: ${formatTime(totalTime)}`);
-            if (tsTime) timing.push(`  - TypeScript: ${formatTime(tsTime)}`);
-            if (eslintTime) timing.push(`  - ESLint: ${formatTime(eslintTime)}`);
+            const status = '${{ steps.full-check.outcome }}' === 'success'
+              ? '✅ Full TypeScript and ESLint checks passed'
+              : '❌ Full checks failed - See logs for details';
 
             const message = [
-              '## Full Codebase Integration Check Results',
+              '## Full Codebase Check',
               '',
-              '${{ steps.full-check.outcome }}' === 'success' 
-                ? '✅ Full TypeScript and ESLint checks passed successfully'
-                : '❌ Integration checks failed - potential type or dependency issues detected',
+              status,
               '',
-              '### Timing',
+              `⏱️ Total time: ${formatDuration(totalTime)}`,
+              `📦 Setup: ${formatDuration(installTime)}`,
+              `🔍 Checks: ${formatDuration(checkTime)}`,
               '',
-              ...timing,
-              '',
-              '### Details',
-              'This check verified:',
-              '- TypeScript types and integration across the entire codebase',
-              '- ESLint rules for imports, exports, and dependencies',
-              '',
-              '> Memory allocation:',
-              '> - TypeScript: 5GB',
-              '> - ESLint: 5GB',
-              '',
-              '_Full check logs are available as artifacts for failed runs_'
-            ].join('\n');
+              '${{ steps.full-check.outcome }}' !== 'success' ? '🔍 Check job logs for error details' : '',
+            ].filter(Boolean).join('\n');
 
             await github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: context.issue.number,
+              owner,
+              repo,
+              issue_number: number,
               body: message
             });

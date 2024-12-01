@@ -1,4 +1,4 @@
 import React from 'react'
-import StackNavigator from './StackNavigator'
+import {TabsNavigatorWidget} from 'widgets/tabs-navigator'
 
-export const Router = () => <StackNavigator />
+export const Router = () => <TabsNavigatorWidget />
