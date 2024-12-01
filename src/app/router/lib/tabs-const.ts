@@ -18,9 +18,7 @@ export const SCREEN_COMPONENTS = {
   [tabNames.analytics]: AnalyticsScreen,
 } as const
 
-export const SCREENS = Object.keys(SCREEN_COMPONENTS) as Array<
-  keyof TabPapamList
->
+export const SCREENS = Object.keys(SCREEN_COMPONENTS) as (keyof TabPapamList)[]
 
 export const TAB_ICONS: Record<
   keyof TabPapamList,
