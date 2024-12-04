@@ -1,7 +1,7 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {RouteProp} from '@react-navigation/native'
 import React, {useCallback, useMemo} from 'react'
-import {TabPapamList} from 'shared/navigation'
+import {tabNames, TabPapamList} from 'shared/navigation'
 import {BASE_SCREEN_OPTIONS, SCREEN_COMPONENTS, SCREENS} from '../config'
 import TabBarIcon from './TabBarIcon'
 
@@ -26,5 +26,9 @@ export default function TabsNavigatorWidget() {
     [],
   )
 
-  return <Navigator screenOptions={screenOptions}>{screens}</Navigator>
+  return (
+    <Navigator initialRouteName={tabNames.camera} screenOptions={screenOptions}>
+      {screens}
+    </Navigator>
+  )
 }
