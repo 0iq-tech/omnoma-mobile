@@ -1,12 +1,12 @@
 import {StackActions} from '@react-navigation/native'
 import {NavigationParamList} from './config'
-import {$ready, onReady} from './is-ready'
+import {$isReady, onReady} from './is-ready'
 import {ref} from './ref'
 import {$state, onStateChange} from './state'
 import {theme} from './theme'
 
 export const navigation = {
-  $ready,
+  $isReady,
   $state,
   onReady,
   onStateChange,
