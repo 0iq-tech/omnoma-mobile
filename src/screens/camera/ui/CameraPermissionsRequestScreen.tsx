@@ -1,10 +1,29 @@
 import {reflect} from '@effector/reflect'
 import React from 'react'
 import {SafeAreaView, Text, TouchableOpacity, View} from 'react-native'
+import {i18n} from 'shared/i18n'
 
-interface Props {}
+interface Props {
+  title: string
+  howToUseTitle: string
+  howToUseDescription: string
+  howWeUseTitle: string
+  howWeUseDescription: string
+  settingsTitle: string
+  settingsDescription: string
+  continueText: string
+}
 
-function CameraPermissionsRequestScreen({}: Props) {
+function CameraPermissionsRequestScreen({
+  title,
+  howToUseTitle,
+  howToUseDescription,
+  howWeUseTitle,
+  howWeUseDescription,
+  settingsTitle,
+  settingsDescription,
+  continueText,
+}: Props) {
   return (
     <SafeAreaView className="flex-1 bg-black px-4">
       <View className="flex-1 justify-center">
@@ -27,7 +46,7 @@ function CameraPermissionsRequestScreen({}: Props) {
 
         {/* Title */}
         <Text className="text-white text-2xl font-semibold text-center mb-8">
-          Allow Instagram to access your camera and microphone
+          {title}
         </Text>
 
         {/* Sections */}
@@ -38,12 +57,9 @@ function CameraPermissionsRequestScreen({}: Props) {
             </View>
             <View className="flex-1 ml-2">
               <Text className="text-white font-semibold mb-1">
-                How you'll use this
+                {howToUseTitle}
               </Text>
-              <Text className="text-gray-400">
-                To take photos, record videos, and preview visual and audio
-                effects.
-              </Text>
+              <Text className="text-gray-400">{howToUseDescription}</Text>
             </View>
           </View>
 
@@ -53,11 +69,9 @@ function CameraPermissionsRequestScreen({}: Props) {
             </View>
             <View className="flex-1 ml-2">
               <Text className="text-white font-semibold mb-1">
-                How we'll use this
+                {howWeUseTitle}
               </Text>
-              <Text className="text-gray-400">
-                To show you previews of visual and audio effects.
-              </Text>
+              <Text className="text-gray-400">{howWeUseDescription}</Text>
             </View>
           </View>
 
@@ -67,12 +81,9 @@ function CameraPermissionsRequestScreen({}: Props) {
             </View>
             <View className="flex-1 ml-2">
               <Text className="text-white font-semibold mb-1">
-                How these settings work
+                {settingsTitle}
               </Text>
-              <Text className="text-gray-400">
-                You can change your choices at any time in your device settings.
-                If you allow access now, you won't have to allow it again.
-              </Text>
+              <Text className="text-gray-400">{settingsDescription}</Text>
             </View>
           </View>
         </View>
@@ -81,7 +92,9 @@ function CameraPermissionsRequestScreen({}: Props) {
       {/* Bottom Button */}
       <View className="pb-8">
         <TouchableOpacity className="rounded-xl">
-          <Text className="text-white font-semibold text-lg">Continue</Text>
+          <Text className="text-white font-semibold text-lg">
+            {continueText}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -90,5 +103,20 @@ function CameraPermissionsRequestScreen({}: Props) {
 
 export default reflect({
   view: CameraPermissionsRequestScreen,
-  bind: {},
+  bind: {
+    title: i18n.translated('permissions:title'),
+    howToUseTitle: i18n.translated('permissions:sections:how_to_use.title'),
+    howToUseDescription: i18n.translated(
+      'permissions:sections:how_to_use.description',
+    ),
+    howWeUseTitle: i18n.translated('permissions:sections:how_we_use.title'),
+    howWeUseDescription: i18n.translated(
+      'permissions:sections:how_we_use.description',
+    ),
+    settingsTitle: i18n.translated('permissions:sections:settings.title'),
+    settingsDescription: i18n.translated(
+      'permissions:sections:settings.description',
+    ),
+    continueText: i18n.translated('permissions:actions:continue'),
+  },
 })

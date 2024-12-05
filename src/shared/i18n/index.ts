@@ -1,5 +1,4 @@
-import * as integration from './integration'
+import {createI18n} from './create-i18n'
 
-export const i18n = {
-  ...integration,
-}
+export * from './types'
+export const i18n = createI18n()

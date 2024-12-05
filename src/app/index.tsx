@@ -1,5 +1,6 @@
 import 'shared/lib/style-interop'
 import '../../global.css'
+import './i18n'
 
 import {useUnit} from 'effector-react'
 import React, {useEffect} from 'react'
