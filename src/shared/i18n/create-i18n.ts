@@ -3,13 +3,9 @@ import {createEffect, createEvent, sample} from 'effector'
 import i18next, {i18n, InitOptions} from 'i18next'
 import 'intl-pluralrules'
 import {handleErrorFx} from 'shared/lib'
-import {TranslationKey, TranslationsSchema} from './types'
+import {TranslationKey} from './types'
 
-export const createI18n = <T extends TranslationsSchema>({
-  config,
-}: {
-  config: InitOptions
-}) => {
+export const createI18n = ({config}: {config: InitOptions}) => {
   const setup = createEvent()
 
   const createI18nextFx = createEffect<void, i18n>(async () => {
@@ -32,7 +28,6 @@ export const createI18n = <T extends TranslationsSchema>({
   return {
     ...integration,
     setup,
-    translated: <K extends TranslationKey<T['en']>>(key: K) =>
-      integration.translated(key as string),
+    translated: (key: TranslationKey) => integration.translated(key),
   }
 }

@@ -1,5 +1,7 @@
 import {enTranslations} from './en'
 
 export const translations = {
-  en: enTranslations,
+  en: {
+    translation: enTranslations,
+  },
 } as const

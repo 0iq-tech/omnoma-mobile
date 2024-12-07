@@ -104,25 +104,25 @@ function CameraPermissionsRequestScreen({
 export default reflect({
   view: CameraPermissionsRequestScreen,
   bind: {
-    title: i18n.translated('screen:camera:permissions:title'),
+    title: i18n.translated('screen.camera.permissions.title'),
     howToUseTitle: i18n.translated(
-      'screen:camera:permissions:sections:how_to_use:title',
+      'screen.camera.permissions.sections.how_to_use.title',
     ),
     howToUseDescription: i18n.translated(
-      'screen:camera:permissions:sections:how_to_use:description',
+      'screen.camera.permissions.sections.how_to_use.description',
     ),
     howWeUseTitle: i18n.translated(
-      'screen:camera:permissions:sections:how_we_use:title',
+      'screen.camera.permissions.sections.how_we_use.title',
     ),
     howWeUseDescription: i18n.translated(
-      'screen:camera:permissions:sections:how_we_use:description',
+      'screen.camera.permissions.sections.how_we_use.description',
     ),
     settingsTitle: i18n.translated(
-      'screen:camera:permissions:sections:settings:title',
+      'screen.camera.permissions.sections.settings.title',
     ),
     settingsDescription: i18n.translated(
-      'screen:camera:permissions:sections:settings:description',
+      'screen.camera.permissions.sections.settings.description',
     ),
-    continueText: i18n.translated('screen:camera:permissions:actions:continue'),
+    continueText: i18n.translated('screen.camera.permissions.actions.continue'),
   },
 })

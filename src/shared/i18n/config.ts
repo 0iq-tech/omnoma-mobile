@@ -8,4 +8,6 @@ export const I18N_INIT_CONFIG: InitOptions = {
   },
   lng: 'en',
   resources: translations,
+  nsSeparator: false,
+  keySeparator: '.',
 } as const
