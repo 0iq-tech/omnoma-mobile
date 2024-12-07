@@ -117,7 +117,9 @@ export default reflect({
     howWeUseDescription: i18n.translated(
       'screen:camera:permissions:sections:how_we_use:description',
     ),
-    settingsTitle: i18n.translated('permissions:sections:settings:title'),
+    settingsTitle: i18n.translated(
+      'screen:camera:permissions:sections:settings:title',
+    ),
     settingsDescription: i18n.translated(
       'screen:camera:permissions:sections:settings:description',
     ),
