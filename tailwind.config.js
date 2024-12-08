@@ -2,6 +2,7 @@
 module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
+  darkMode: 'class',
   theme: {
     spacing: {
       px: '1px',
@@ -45,7 +46,6 @@ module.exports = {
     },
     extend: {
       colors: {
-        // Main brand colors with variations
         yellow: {
           50: '#FEF6E6',
           100: '#FEECC',
@@ -106,7 +106,6 @@ module.exports = {
           800: '#56613F',
           900: '#4A5436',
         },
-        // Additional colors with variations
         brown: {
           50: '#F4F1EF',
           100: '#E9E3DE',
@@ -168,6 +167,41 @@ module.exports = {
           800: '#765B60',
           900: '#62464B',
         },
+        dark: {
+          background: '#121212',
+          surface: {
+            DEFAULT: '#1E1E1E',
+            secondary: '#2C2C2C',
+          },
+          text: {
+            primary: '#FFFFFF',
+            secondary: '#B9C5CD',
+            tertiary: '#9EADB8',
+            inverse: '#000505',
+          },
+          primary: {
+            DEFAULT: '#E787BF',
+            pressed: '#EDA5CF',
+          },
+          accent: {
+            blue: '#93D1F7',
+            bronze: '#D3C7BD',
+            green: '#CFD6C3',
+            yellow: '#FED980',
+          },
+          border: {
+            DEFAULT: '#2C2C2C',
+            strong: '#404040',
+          },
+          'primary-opacity': {
+            5: 'rgba(231, 135, 191, 0.05)',
+            10: 'rgba(231, 135, 191, 0.1)',
+            20: 'rgba(231, 135, 191, 0.2)',
+            30: 'rgba(231, 135, 191, 0.3)',
+            40: 'rgba(231, 135, 191, 0.4)',
+            50: 'rgba(231, 135, 191, 0.5)',
+          },
+        },
         background: '#F8FAFB',
         surface: {
           DEFAULT: '#FFFFFF',
@@ -189,7 +223,6 @@ module.exports = {
           tertiary: '#6A7B8E',
           inverse: '#FFFFFF',
         },
-        // Using violet as primary color for opacity variants
         'primary-opacity': {
           5: 'rgba(209, 92, 166, 0.05)',
           10: 'rgba(209, 92, 166, 0.1)',
