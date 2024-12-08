@@ -2,16 +2,17 @@ export const enTranslations = {
   screen: {
     camera: {
       permissions: {
-        title: 'Allow Instagram to access your camera and microphone',
+        title: 'Allow omnoma to access your camera and microphone',
         sections: {
           how_to_use: {
             title: "How you'll use this",
             description:
-              'To take photos, record videos, and preview visual and audio effects.',
+              'To take photos and record brief food descriptions for nutritional analysis.',
           },
           how_we_use: {
             title: "How we'll use this",
-            description: 'To show you previews of visual and audio effects.',
+            description:
+              'To analyze your food and provide nutritional information like energy content.',
           },
           settings: {
             title: 'How these settings work',

@@ -1,7 +1,9 @@
 import {reflect} from '@effector/reflect'
+import {Ionicons, MaterialCommunityIcons} from '@expo/vector-icons'
 import React from 'react'
 import {SafeAreaView, Text, TouchableOpacity, View} from 'react-native'
 import {i18n} from 'shared/i18n'
+import CameraPermissionSection from './CameraPermissionSection'
 
 interface Props {
   title: string
@@ -12,6 +14,7 @@ interface Props {
   settingsTitle: string
   settingsDescription: string
   continueText: string
+  onContinue?: () => void
 }
 
 function CameraPermissionsRequestScreen({
@@ -23,76 +26,63 @@ function CameraPermissionsRequestScreen({
   settingsTitle,
   settingsDescription,
   continueText,
+  onContinue,
 }: Props) {
   return (
-    <SafeAreaView className="flex-1 bg-black px-4">
-      <View className="flex-1 justify-center">
-        {/* Icon Container */}
-        <View className="items-center mb-8">
-          <View className="bg-zinc-900 p-6 rounded-2xl">
-            <View className="relative">
-              <View className="w-16 h-16 border-2 border-white rounded-lg items-center justify-center">
-                {/* <Camera className="w-8 h-8" color="white" /> */}
-              </View>
-              <View className="absolute -right-2 -top-2">
-                {/* <Mic className="w-6 h-6" color="#ec4899" /> */}
-              </View>
-              <View className="absolute -left-2 -top-2">
-                <View className="w-4 h-4 bg-yellow-400 rounded-full" />
-              </View>
-            </View>
+    <SafeAreaView className="flex-1 bg-surface">
+      <View className="flex-1 px-24 pt-24">
+        <View className="items-center mb-24">
+          <View className="bg-purple-50 rounded-full p-16">
+            <MaterialCommunityIcons
+              name="camera-iris"
+              size={36}
+              className="color-purple"
+            />
           </View>
         </View>
-
-        {/* Title */}
-        <Text className="text-white text-2xl font-semibold text-center mb-8">
+        <Text className="text-gray-800 text-3xl font-bold text-center leading-10 mb-40">
           {title}
         </Text>
 
-        {/* Sections */}
-        <View className="space-y-6 mb-8">
-          <View className="flex-row">
-            <View className="w-8 h-8 items-center">
-              {/* <Camera className="w-6 h-6" color="white" /> */}
-            </View>
-            <View className="flex-1 ml-2">
-              <Text className="text-white font-semibold mb-1">
-                {howToUseTitle}
-              </Text>
-              <Text className="text-gray-400">{howToUseDescription}</Text>
-            </View>
-          </View>
-
-          <View className="flex-row">
-            <View className="w-8 h-8 items-center">
-              <Text className="text-white text-2xl">?</Text>
-            </View>
-            <View className="flex-1 ml-2">
-              <Text className="text-white font-semibold mb-1">
-                {howWeUseTitle}
-              </Text>
-              <Text className="text-gray-400">{howWeUseDescription}</Text>
-            </View>
-          </View>
-
-          <View className="flex-row">
-            <View className="w-8 h-8 items-center">
-              <View className="w-6 h-6 border-2 border-white rounded-full" />
-            </View>
-            <View className="flex-1 ml-2">
-              <Text className="text-white font-semibold mb-1">
-                {settingsTitle}
-              </Text>
-              <Text className="text-gray-400">{settingsDescription}</Text>
-            </View>
-          </View>
-        </View>
+        <CameraPermissionSection
+          containerStyle="mb-24"
+          icon={
+            <MaterialCommunityIcons
+              name="image-multiple"
+              size={24}
+              className="color-gray-800"
+            />
+          }
+          title={howToUseTitle}
+          description={howToUseDescription}
+        />
+        <CameraPermissionSection
+          containerStyle="mb-24"
+          description={howWeUseDescription}
+          icon={
+            <Ionicons
+              name="shield-checkmark"
+              size={24}
+              className="color-gray-800"
+            />
+          }
+          title={howWeUseTitle}
+        />
+        <CameraPermissionSection
+          containerStyle="mb-24"
+          description={settingsDescription}
+          icon={
+            <Ionicons name="settings" size={24} className="color-gray-800" />
+          }
+          title={settingsTitle}
+        />
       </View>
-
-      {/* Bottom Button */}
-      <View className="pb-8">
-        <TouchableOpacity className="rounded-xl">
-          <Text className="text-white font-semibold text-lg">
+      <View className="px-24 pb-24 pt-8 bg-surface">
+        <TouchableOpacity
+          className="bg-sea py-16 px-24 rounded-lg flex-row justify-center items-center active:bg-green-700"
+          onPress={onContinue}
+        >
+          <Text className="text-text-inverse font-semibold text-lg text-center mr-8">
             {continueText}
           </Text>
         </TouchableOpacity>
