@@ -1,5 +1,6 @@
 import {reflect} from '@effector/reflect'
 import {Ionicons, MaterialCommunityIcons} from '@expo/vector-icons'
+import {ThemeSwitcher} from 'features/theme-switcher'
 import React from 'react'
 import {Text, TouchableOpacity, View} from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
@@ -16,6 +17,7 @@ interface Props {
   settingsDescription: string
   continueText: string
   onContinue?: () => void
+  onToggleThemePress: () => void
 }
 
 function CameraPermissionsRequestScreen({
@@ -28,6 +30,7 @@ function CameraPermissionsRequestScreen({
   settingsDescription,
   continueText,
   onContinue,
+  onToggleThemePress,
 }: Props) {
   return (
     <SafeAreaView className="flex-1 bg-surface dark:bg-dark-surface">
@@ -90,6 +93,9 @@ function CameraPermissionsRequestScreen({
             {continueText}
           </Text>
         </TouchableOpacity>
+      </View>
+      <View className="absolute top-64 right-16">
+        <ThemeSwitcher />
       </View>
     </SafeAreaView>
   )

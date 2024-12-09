@@ -1,3 +1,3 @@
 import {ColorSchemeName} from 'react-native'
 
-export type NativeWindScheme = NonNullable<ColorSchemeName>
+export type ThemeScheme = NonNullable<ColorSchemeName> | 'system'

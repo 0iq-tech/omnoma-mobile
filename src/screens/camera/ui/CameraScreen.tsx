@@ -3,6 +3,7 @@ import {FoodCameraView} from 'features/analyze-food'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import {$permission} from '../model'
 import CameraPermissionsRequestScreen from './CameraPermissionsRequestScreen'
+import {not} from 'patronum'
 
 function CameraScreen() {
   return (
@@ -13,7 +14,7 @@ function CameraScreen() {
 }
 
 export default variant({
-  if: $permission.map((p) => p?.granted ?? false),
+  if: not($permission.map((p) => p?.granted ?? false)),
   then: CameraScreen,
   else: CameraPermissionsRequestScreen,
 })

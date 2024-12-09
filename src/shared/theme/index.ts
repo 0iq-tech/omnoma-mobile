@@ -1,75 +1,32 @@
-import {persist} from '@effector-storage/react-native-async-storage'
-import {attach, createEffect, createEvent, createStore, sample} from 'effector'
-import {colorScheme} from 'nativewind'
-import {Appearance} from 'react-native'
-import {handleErrorFx, LEVELS} from '../lib/handle-error'
-import {DEFAULT_COLOR_SCHEME} from './const'
-import {NativeWindScheme} from './types'
+import {
+  getInitialColorSchemeFx,
+  setColorScheme,
+  setColorSchemeFx,
+} from './color-scheme'
 
-const $colorScheme = createStore<NativeWindScheme | null>(null)
+import {$isDark} from './is-dark'
 
-persist({store: $colorScheme, key: '$colorScheme'})
+import {
+  getSystemColorSchemeFx,
+  setSystemColorScheme,
+} from './system-color-scheme'
+import {useIsDark} from './use-is-dark'
 
-const getInitialColorSchemeFx = attach({
-  source: $colorScheme,
-  effect: (scheme) =>
-    scheme ?? Appearance.getColorScheme() ?? DEFAULT_COLOR_SCHEME,
-})
+export {SystemThemeSync} from './SystemThemeSync'
 
-sample({
-  clock: getInitialColorSchemeFx.failData,
-  fn: (error) => ({
-    error,
-    level: LEVELS.ERROR,
-    context: {
-      source: 'getInitialColorSchemeFx',
-    },
-  }),
-  target: handleErrorFx,
-})
-
-const setColorSchemeFx = createEffect((scheme: NativeWindScheme) => {
-  requestAnimationFrame(() => {
-    colorScheme.set(scheme)
-  })
-  return scheme
-})
-
-sample({
-  clock: getInitialColorSchemeFx.doneData,
-  target: setColorSchemeFx,
-})
-
-sample({
-  source: setColorSchemeFx.doneData,
-  target: $colorScheme,
-})
-
-sample({
-  clock: setColorSchemeFx.failData,
-  fn: (error) => ({
-    error,
-    level: LEVELS.ERROR,
-    context: {
-      source: 'setColorSchemeFx',
-    },
-  }),
-  target: handleErrorFx,
-})
-
-const onToggleTheme = createEvent()
-
-sample({
-  clock: onToggleTheme,
-  source: $colorScheme,
-  fn: (scheme) => (scheme === 'dark' ? 'light' : 'dark'),
-  target: setColorSchemeFx,
-})
-
-const $isDark = $colorScheme.map((schema) => schema === 'dark')
+export {ThemeScheme} from './types'
 
 export const theme = {
-  getInitialColorSchemeFx,
-  onToggleTheme,
+  useIsDark,
   $isDark,
+
+  getInitialColorSchemeFx,
+
+  getSystemColorSchemeFx,
+
+  setColorScheme,
+
+  setColorSchemeFx,
+
+  setSystemColorScheme,
 } as const

@@ -1,7 +1,3 @@
-import 'shared/lib/style-interop'
-import '../../global.css'
-import './i18n'
-
 import {useUnit} from 'effector-react'
 import React, {useEffect} from 'react'
 import {SystemBars} from 'react-native-edge-to-edge'
@@ -11,24 +7,36 @@ import {
   BootSplashState,
 } from 'screens/bootsplash'
 import {app} from 'shared/lib'
+import 'shared/lib/style-interop'
 import {Measurements} from 'shared/measurements'
+import {SystemThemeSync, theme} from 'shared/theme'
+import '../../global.css'
+import './i18n'
 import {withProviders} from './providers'
+import './storage'
+import './theme'
+
 import {Router} from './router'
 
 function App() {
-  const [appStarted] = useUnit([app.started])
+  const [appStarted, isDark] = useUnit([app.started, theme.$isDark])
+
   const [bootSplashState] = useUnit([bootsplashScreenModel.$state])
 
   useEffect(() => {
     appStarted()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
     <>
+      <SystemThemeSync />
+
       <Measurements />
-      <SystemBars style="dark" />
+
+      <SystemBars style={`${isDark ? 'light' : 'dark'}`} />
+
       <Router />
+
       {bootSplashState === BootSplashState.HIDING && <BootSplashScreen />}
     </>
   )

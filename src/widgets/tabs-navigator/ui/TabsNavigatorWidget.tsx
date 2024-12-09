@@ -5,18 +5,15 @@ import React, {useCallback, useMemo} from 'react'
 import {safeArea} from 'shared/measurements'
 import {tabNames, TabPapamList} from 'shared/navigation'
 import {theme} from 'shared/theme'
+import {useIsDark} from 'shared/theme/use-is-dark'
 import {SCREEN_COMPONENTS, SCREENS} from '../config'
 import TabBarIcon from './TabBarIcon'
 import {useTabOptions} from './use-tab-options'
 
 const {Navigator, Screen} = createBottomTabNavigator<TabPapamList>()
 
-interface Props {
-  isDark: boolean
-  safeAreaTop: number
-}
-
-function TabsNavigatorWidget({isDark}: Props) {
+function TabsNavigatorWidget() {
+  const isDark = useIsDark()
   const tabOptions = useTabOptions({isDark})
 
   const screenOptions = useCallback(
