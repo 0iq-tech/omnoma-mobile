@@ -179,10 +179,6 @@ module.exports = {
             tertiary: '#9EADB8',
             inverse: '#000505',
           },
-          primary: {
-            DEFAULT: '#E787BF',
-            pressed: '#EDA5CF',
-          },
           accent: {
             blue: '#93D1F7',
             bronze: '#D3C7BD',

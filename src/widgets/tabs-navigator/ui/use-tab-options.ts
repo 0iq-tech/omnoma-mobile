@@ -12,18 +12,18 @@ interface ThemeColors {
 
 const THEME_COLORS = {
   light: {
-    active: '#6B7CBC', // colors.sea.DEFAULT
-    inactive: '#9EADB8', // colors.gray.500
+    active: '#5C7B8B', // muted slate
+    inactive: '#B9C5CD', // gray.400
     background: '#FFFFFF', // colors.surface.DEFAULT
-    border: '#F1F4F6', // colors.surface.secondary
+    border: '#E3E9ED', // colors.gray.200
     shadow: '#000505', // colors.black.DEFAULT
   },
   dark: {
-    active: '#E787BF', // colors.dark.primary.DEFAULT
-    inactive: '#9EADB8', // colors.gray.500
+    active: '#7297AB', // brightened slate
+    inactive: '#6A7B8E', // gray.700
     background: '#1E1E1E', // colors.dark.surface.DEFAULT
     border: '#2C2C2C', // colors.dark.surface.secondary
-    shadow: '#000000', // direct black, not in config
+    shadow: '#000505', // colors.black.DEFAULT
   },
 } as const
 
@@ -47,7 +47,7 @@ export const useTabOptions = ({isDark}: {isDark: boolean}) => {
           ios: {
             shadowColor: currentTheme.shadow,
             shadowOffset: {width: 0, height: -2},
-            shadowOpacity: isDark ? 0.2 : 0.05,
+            shadowOpacity: isDark ? 0.1 : 0.05,
             shadowRadius: 4,
           },
           android: {
