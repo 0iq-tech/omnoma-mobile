@@ -46,6 +46,8 @@ condition({
 
 const $foodAnalysis = createStore<any | null>(null)
 
+$foodAnalysis.watch((s) => console.log('$foodAnalysis', s))
+
 // store the result of the analysis
 
 sample({

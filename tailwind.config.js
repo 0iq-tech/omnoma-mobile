@@ -255,7 +255,4 @@ module.exports = {
   future: {
     hoverOnlyWhenSupported: true,
   },
-  experimental: {
-    optimizeUniversalDefaults: true,
-  },
 }
