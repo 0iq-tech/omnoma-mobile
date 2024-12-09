@@ -54,8 +54,6 @@ sample({
   target: $foodAnalysis,
 })
 
-$foodAnalysis.watch((s) => console.log('$foodAnalysis', s))
-
 // handle errors
 
 sample({

@@ -1,4 +1,5 @@
-import {createEvent, createStore, sample} from 'effector'
+import {combine, createEvent, createStore, sample} from 'effector'
+import {i18n} from 'shared/i18n'
 import {navigation} from 'shared/navigation'
 import {BootSplashState} from '../api'
 
@@ -12,7 +13,8 @@ sample({
 })
 
 sample({
-  clock: navigation.onReady,
+  clock: combine(navigation.$isReady, i18n.$isReady),
+  filter: ([navigationReady, i18nReady]) => navigationReady && i18nReady,
   fn: () => BootSplashState.HIDING,
   target: $state,
 })

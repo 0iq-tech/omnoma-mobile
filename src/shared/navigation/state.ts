@@ -4,7 +4,7 @@ import {tabNames} from './config'
 
 const $state = createStore<InitialState | null>({
   index: 0,
-  routes: [{name: tabNames.feed}],
+  routes: [{name: tabNames.camera}],
 })
 
 const onStateChange = createEvent<NavigationState | undefined>()

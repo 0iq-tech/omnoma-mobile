@@ -3,6 +3,6 @@ import {ref} from './ref'
 
 const onReady = createEvent()
 
-const $ready = createStore(ref.isReady()).on(onReady, () => true)
+const $isReady = createStore(ref.isReady()).on(onReady, () => true)
 
-export {$ready, onReady}
+export {$isReady, onReady}
