@@ -187,6 +187,7 @@ module.exports = {
             blue: '#93D1F7',
             bronze: '#D3C7BD',
             green: '#CFD6C3',
+            orange: '#FE7F03',
             yellow: '#FED980',
           },
           border: {
